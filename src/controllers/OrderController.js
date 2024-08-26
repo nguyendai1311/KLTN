@@ -76,17 +76,31 @@ const cancelOrderDetails = async (req, res) => {
     }
 }
 
+// const getAllOrder = async (req, res) => {
+//     try {
+//         const data = await OrderService.getAllOrder()
+//         return res.status(200).json(data)
+//     } catch (e) {
+//         // console.log(e)
+//         return res.status(404).json({
+//             message: e
+//         })
+//     }
+// }
+
 const getAllOrder = async (req, res) => {
     try {
-        const data = await OrderService.getAllOrder()
-        return res.status(200).json(data)
+        const data = await OrderService.getAllOrder();
+        return res.status(200).json(data);
     } catch (e) {
-        // console.log(e)
-        return res.status(404).json({
-            message: e
-        })
+        console.error(e);  // Logging the error for debugging purposes
+        return res.status(500).json({  // Changed to 500 for a server-side error
+            message: 'Failed to retrieve orders',
+            error: e.message  // Added specific error message
+        });
     }
-}
+};
+
 
 module.exports = {
     createOrder,
