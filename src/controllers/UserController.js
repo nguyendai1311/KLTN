@@ -64,7 +64,6 @@ const createUser = async (req, res) => {
     }
 }
 
-
 const resendOtp = async (req, res) => {
     try {
         const { email } = req.body;

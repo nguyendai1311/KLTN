@@ -103,6 +103,36 @@ const getAllProduct = async (req, res) => {
     }
 }
 
+//const getAllProduct = async (req, res) => {
+//     try {
+//         const { limit, page, sort, filter, minPrice = 0, maxPrice = Infinity } = req.query;
+
+//         // Parse minPrice and maxPrice, ensuring they are valid numbers
+//         const parsedMinPrice = Number(minPrice);
+//         const parsedMaxPrice = Number(maxPrice);
+
+//         if (isNaN(parsedMinPrice) || isNaN(parsedMaxPrice)) {
+//             throw new Error('Invalid price values');
+//         }
+
+//         const response = await ProductService.getAllProduct(
+//             Number(limit) || null,  // Limit
+//             Number(page) || 0,      // Page
+//             sort ? sort.split(',') : [],  // Sort options
+//             filter,  // Filter
+//             [parsedMinPrice, parsedMaxPrice]  // Price range
+//         );
+
+//         return res.status(200).json(response);
+//     } catch (e) {
+//         console.error('Error fetching products:', e.message);  // Log error for debugging
+//         return res.status(500).json({
+//             message: e.message || 'Internal server error'
+//         });
+//     }
+// };
+
+
 
 const getAllType = async (req, res) => {
     try {
