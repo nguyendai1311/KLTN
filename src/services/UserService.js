@@ -1,8 +1,8 @@
 const User = require('../models/UserModel')
-const bcrypt = require("bcrypt")
+const bcrypt = require('bcryptjs');
 const { genneralAccessToken, genneralRefreshToken } = require('./JwtService')
 const EmailService = require('../services/EmailService')
-const otps = {}; 
+const otps = {};
 
 const generateOtp = () => {
     return (Math.floor(100000 + Math.random() * 900000)).toString(); 
@@ -12,8 +12,6 @@ const sendOtp = async (email) => {
     try {
         const now = Date.now(); // Current timestamp in milliseconds
         const cooldownPeriod = 60 * 1000; // 1 minute cooldown period (in milliseconds)
-
-        // Check if an OTP has been sent recently
         if (otps[email]) {
             const { sentAt } = otps[email];
             if (now - sentAt < cooldownPeriod) {
@@ -23,8 +21,6 @@ const sendOtp = async (email) => {
                 };
             }
         }
-
-        // Generate a new OTP and store it
         const newOtp = generateOtp();
         otps[email] = {
             otp: newOtp,
@@ -48,16 +44,7 @@ const createUser = (newUser) => {
     return new Promise(async (resolve, reject) => {
         const { name, email, password, confirmPassword, phone } = newUser
         try {
-            const checkUser = await User.findOne({
-                email: email
-            })
-            if (checkUser !== null) {
-                resolve({
-                    status: 'ERR',
-                    statusCode: 400,
-                    message: 'Email đã tồn tại'
-                })
-            }
+            
             const hash = bcrypt.hashSync(password, 10)
             const createdUser = await User.create({
                 name,
@@ -122,6 +109,46 @@ const resetPassword = async (email, otp, newPassword) => {
 };
 
 
+// const loginUser = (userLogin) => {
+//     return new Promise(async (resolve, reject) => {
+//         const { email, password } = userLogin;
+//         try {
+//             const checkUser = await User.findOne({ email });
+//             if (!checkUser) {
+//                 return resolve({
+//                     status: 'ERR',
+//                     message: 'Tài khoản không tồn tại vui lòng đăng kí!'
+//                 });
+//             }
+//             const comparePassword = bcrypt.compareSync(password, checkUser.password);
+//             if (!comparePassword) {
+//                 return resolve({
+//                     status: 'ERR',
+//                     message: 'Thông tin tài khoản hoặc mật khẩu không chính xác'
+//                 });
+//             }
+//             const access_token = await genneralAccessToken({
+//                 id: checkUser.id,
+//                 isAdmin: checkUser.isAdmin
+//             });
+//             console.log('access',access_token);
+//             const refresh_token = await genneralRefreshToken({
+//                 id: checkUser.id,
+//                 isAdmin: checkUser.isAdmin
+//             });
+
+//             resolve({
+//                 status: 'OK',
+//                 message: 'Login successful',
+//                 access_token,
+//                 refresh_token
+//             });
+//         } catch (e) {
+//             reject(e);
+//         }
+//     });
+// };
+
 const loginUser = (userLogin) => {
     return new Promise(async (resolve, reject) => {
         const { email, password } = userLogin;
@@ -161,6 +188,7 @@ const loginUser = (userLogin) => {
         }
     });
 };
+
 
 
 const updateUser = (id, data) => {
@@ -272,6 +300,7 @@ const getDetailsUser = (id) => {
 
 module.exports = {
     createUser,
+    otps,
     sendOtp,
     resendOtp,
     resetPassword,

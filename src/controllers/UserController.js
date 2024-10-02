@@ -2,7 +2,9 @@ const UserService = require('../services/UserService')
 const JwtService = require('../services/JwtService')
 const EmailService = require('../services/EmailService');
 const User = require('../models/UserModel');
+const jwt = require('jsonwebtoken');
 
+const otps = UserService.otps; 
 const sendOtp = async (req, res) => {
     try {
         const { email } = req.body;
@@ -25,7 +27,7 @@ const sendOtp = async (req, res) => {
 
 const createUser = async (req, res) => {
     try {
-        const { name, email, password, confirmPassword, phone } = req.body;
+        const { name, email, password, confirmPassword, phone,otp } = req.body;
 
         const emailReg = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
         const isEmailValid = emailReg.test(email);
@@ -38,6 +40,7 @@ const createUser = async (req, res) => {
                 status: 'ERR',
                 message: 'The input is required'
             });
+            
         } else if (!isEmailValid) {
             return res.status(400).json({
                 status: 'ERR',
@@ -52,6 +55,21 @@ const createUser = async (req, res) => {
             return res.status(400).json({
                 status: 'ERR',
                 message: 'Password và confirmPassword không khớp.'
+            });
+        }
+ 
+        const existingUser = await User.findOne({ email });
+        if (existingUser) {
+            return res.status(400).json({
+                status: 'ERR',
+                message: 'Email đã tồn tại. Vui lòng chọn email khác.'
+            });
+        }
+        
+        if (!otps[email] || otps[email].otp !== otp) {
+            return res.status(400).json({
+                status: 'ERR',
+                message: 'OTP không hợp lệ.'
             });
         }
 
@@ -138,6 +156,52 @@ const verifyOtp = async (req, res) => {
     }
 }
 
+// const loginUser = async (req, res) => {
+//     try {
+//         const { email, password } = req.body;
+//         if (!email || !password) {
+//             return res.status(400).json({
+//                 status: 'ERR',
+//                 message: 'Email and password are required'
+//             });
+//         }
+//         const reg = /^\w+([-+.']\w+)*@\w+([-.]\w+)*\.\w+([-.]\w+)*$/;
+//         const isCheckEmail = reg.test(email);
+//         if (!isCheckEmail) {
+//             return res.status(400).json({
+//                 status: 'ERR',
+//                 message: 'Thông tin mật khẩu không hợp lệ'
+//             })
+//         }
+
+//         const response = await UserService.loginUser(req.body);
+
+//         if (response.status === 'ERR') {
+//             return res.status(401).json({
+//                 status: 'ERR',
+//                 message: response.message
+//             });
+//         } 
+
+//         const { refresh_token, ...newResponse } = response;
+//         res.cookie('refresh_token', refresh_token, {
+//             httpOnly: true,
+//             secure: false,
+//             sameSite: 'strict',
+//             path: '/',
+//         });
+
+//         return res.status(200).json({ ...newResponse, refresh_token });
+
+//     } catch (e) {
+//         return res.status(500).json({
+//             status: 'ERR',
+//             message: 'Internal Server Error',
+//             error: e.message
+//         });
+//     }
+// };
+
 const loginUser = async (req, res) => {
     try {
         const { email, password } = req.body;
@@ -174,7 +238,7 @@ const loginUser = async (req, res) => {
         });
 
         return res.status(200).json({ ...newResponse, refresh_token });
-        
+
     } catch (e) {
         return res.status(500).json({
             status: 'ERR',
@@ -183,7 +247,6 @@ const loginUser = async (req, res) => {
         });
     }
 };
-
 
 const updateUser = async (req, res) => {
     try {
