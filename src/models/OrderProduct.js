@@ -1,5 +1,4 @@
-const mongoose = require('mongoose')
-
+const mongoose = require('mongoose');
 const orderSchema = new mongoose.Schema({
     orderItems: [
         {
@@ -13,6 +12,7 @@ const orderSchema = new mongoose.Schema({
                 ref: 'Product',
                 required: true,
             },
+            timeAdded: { type: Date, default: Date.now }
         },
     ],
     shippingAddress: {
@@ -34,5 +34,6 @@ const orderSchema = new mongoose.Schema({
         timestamps: true,
     }
 );
+
 const Order = mongoose.model('Order', orderSchema);
 module.exports = Order
