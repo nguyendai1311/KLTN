@@ -2,7 +2,6 @@ const nodemailer = require('nodemailer');
 const dotenv = require('dotenv');
 const crypto = require('crypto');
 const inlineBase64 = require('nodemailer-plugin-inline-base64');
-const { log } = require('console');
 
 dotenv.config();
 
@@ -10,10 +9,10 @@ const createTransporter = () => {
   return nodemailer.createTransport({
     host: "smtp.gmail.com",
     port: 465,
-    secure: true, // true for 465, false for other ports
+    secure: true, 
     auth: {
-      user: process.env.MAIL_ACCOUNT, // your email account
-      pass: process.env.MAIL_PASSWORD, // your email password
+      user: process.env.MAIL_ACCOUNT, 
+      pass: process.env.MAIL_PASSWORD,
     },
   });
 };
@@ -29,8 +28,8 @@ const sendEmailCreateOrder = async (email, orderItems) => {
     orderItems.forEach((order) => {
       listItem += `
         <div>
-          <p>Bạn đã đặt sản phẩm <b>${order.name}</b> với số lượng: <b>${order.amount}</b> và giá là: <b>${order.price} VND</b>.</p>
-          <p>Bên dưới là hình ảnh của sản phẩm:</p>
+          <p>Bạn đã mua khóa học <b>${order.name}</b> và giá là: <b>${order.price} VND</b>.</p>
+          <p>Bên dưới là hình ảnh của khóa học:</p>
         </div>`;
       attachImage.push({ path: order.image });
     });
@@ -38,8 +37,8 @@ const sendEmailCreateOrder = async (email, orderItems) => {
     await transporter.sendMail({
       from: process.env.MAIL_ACCOUNT,
       to: email,
-      subject: "Bạn đã đặt hàng tại shop",
-      html: `<div><b>Bạn đã đặt hàng thành công</b></div>${listItem}`,
+      subject: "Bạn đã mua khóa học",
+      html: `<div><b>Bạn đã mua khóa học thành công</b></div>${listItem}`,
       attachments: attachImage,
     });
 

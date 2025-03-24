@@ -1,98 +1,141 @@
-const Order = require("../models/OrderProduct")
-const Product = require("../models/ProductModel")
-const EmailService = require("../services/EmailService")
+const Order = require('../models/OrderProduct')
+const Course = require('../models/CourseModel')
+const Class = require('../models/ClassModel');
+const EmailService = require('./EmailService')
 
-const createOrder = (newOrder) => {
-    return new Promise(async (resolve, reject) => {
-        const { orderItems,paymentMethod, itemsPrice, shippingPrice, totalPrice, fullName, address, city, phone,user, isPaid, paidAt,email } = newOrder
-        try {
-            const promises = orderItems.map(async (order) => {
-                const productData = await Product.findOneAndUpdate(
-                    {
-                    _id: order.product,
-                    countInStock: {$gte: order.amount}
-                    },
-                    {$inc: {
-                        countInStock: -order.amount,
-                        selled: +order.amount
-                    }},
-                    {new: true}
-                )
-                if(productData) {
-                    return {
-                        status: 'OK',
-                        message: 'SUCCESS'
-                    }
-                }
-                 else {
-                    return{
-                        status: 'OK',
-                        message: 'ERR',
-                        id: order.product
-                    }
-                }
-            })
-            const results = await Promise.all(promises)
-            const newData = results && results.filter((item) => item.id)
-            if(newData.length) {
-                const arrId = []
-                newData.forEach((item) => {
-                    arrId.push(item.id)
-                })
-                resolve({
-                    status: 'ERR',
-                    message: `San pham voi id: ${arrId.join(',')} khong du hang`
-                })
+
+// const createOrder = async (newOrder) => {
+//     const { orderItems, paymentMethod, itemsPrice, totalPrice, user, isPaid, paidAt, email } = newOrder;
+//     try {
+//         // Kiểm tra tồn kho và cập nhật số lượng khóa học đã bán
+//         const promises = orderItems.map(async (order) => {
+//             const CourseData = await Course.findOneAndUpdate(
+//                 { _id: order.course, countInStock: { $gte: order.amount } },
+//                 {
+//                     $inc: {
+//                         countInStock: -order.amount,
+//                         selled: order.amount
+//                     }
+//                 },
+//                 { new: true }
+//             );
+
+//             return CourseData
+//                 ? { status: 'OK', message: 'SUCCESS' }
+//                 : { status: 'ERR', id: order.course };
+//         });
+
+//         const results = await Promise.all(promises);
+//         const failedOrders = results.filter((item) => item.status === 'ERR');
+
+//         if (failedOrders.length) {
+//             const arrId = failedOrders.map((item) => item.id);
+//             return { status: 'ERR', message: `Lớp học với ID: ${arrId.join(', ')} không đủ chỗ` };
+//         }
+
+//         // Tạo đơn hàng
+//         const createdOrder = await Order.create({
+//             orderItems,
+//             paymentMethod,
+//             itemsPrice,
+//             totalPrice,
+//             user,
+//             isPaid,
+//             paidAt
+//         });
+
+//         // ✅ Sau khi tạo đơn hàng, tự động thêm sinh viên vào lớp học
+//         await Promise.all(orderItems.map(async (order) => {
+//             await ClassroomService.addStudentToClass(order.course, user);
+//         }));
+
+//         // Gửi email xác nhận đơn hàng
+//         await EmailService.sendEmailCreateOrder(email, orderItems);
+
+//         return { status: 'OK', message: 'Success' };
+//     } catch (error) {
+//         throw new Error(error.message);
+//     }
+// };
+
+const createOrder = async (newOrder) => {
+    try {
+        const { orderItems, paymentMethod, itemsPrice, totalPrice, fullName, city, phone, user, isPaid, paidAt, email } = newOrder;
+        const failedOrders = [];
+
+        for (const order of orderItems) {
+            const CourseData = await Course.findOneAndUpdate(
+                { _id: order.course, countInStock: { $gte: order.amount } },
+                { $inc: { countInStock: -order.amount, selled: order.amount } },
+                { new: true }
+            );
+
+            if (!CourseData) {
+                failedOrders.push(order.course);
             } else {
-                const createdOrder = await Order.create({
-                    orderItems,
-                    shippingAddress: {
-                        fullName,
-                        address,
-                        city, phone
-                    },
-                    paymentMethod,
-                    itemsPrice,
-                    shippingPrice,
-                    totalPrice,
-                    user: user,
-                    isPaid, paidAt
-                })
-                if (createdOrder) {
-                    await EmailService.sendEmailCreateOrder(email,orderItems)
-                    resolve({
-                        status: 'OK',
-                        message: 'success'
-                    })
+                // 🔥 Cập nhật danh sách học sinh trong lớp học (tránh trùng lặp)
+                const updatedClass = await Class.findOneAndUpdate(
+                    { course: order.course },
+                    { $addToSet: { students: user } },
+                    { new: true }
+                );
+
+                if (updatedClass) {
+                    console.log(`✅ Học sinh ${user} đã được thêm vào lớp ${updatedClass.name}`);
                 }
             }
-        } catch (e) {
-        //   console.log('e', e)
-            reject(e)
         }
-    })
-}
 
-// const deleteManyProduct = (ids) => {
-//     return new Promise(async (resolve, reject) => {
-//         try {
-//             await Product.deleteMany({ _id: ids })
-//             resolve({
-//                 status: 'OK',
-//                 message: 'Delete product success',
-//             })
-//         } catch (e) {
-//             reject(e)
-//         }
-//     })
-// }
+        if (failedOrders.length) {
+            return {
+                status: 'ERR',
+                message: `Lớp học với ID: ${failedOrders.join(', ')} không đủ chỗ`
+            };
+        }
+
+        // 🛒 Tạo đơn hàng mới
+        const createdOrder = await Order.create({
+            orderItems,
+            paymentMethod,
+            itemsPrice,
+            totalPrice,
+            user,
+            isPaid,
+            paidAt
+        });
+
+        if (!createdOrder) {
+            return {
+                status: 'ERR',
+                message: 'Không thể tạo đơn hàng'
+            };
+        }
+
+        // 📧 Gửi email xác nhận đơn hàng nếu có email
+        if (email) {
+            await EmailService.sendEmailCreateOrder(email, orderItems);
+        }
+
+        return {
+            status: 'OK',
+            message: 'Đơn hàng được tạo thành công',
+            data: createdOrder
+        };
+
+    } catch (error) {
+        console.error("❌ Lỗi khi tạo đơn hàng:", error);
+        throw new Error(error.message);
+    }
+};
+
+
 
 const getAllOrderDetails = (id) => {
     return new Promise(async (resolve, reject) => {
         try {
             const order = await Order.find({
                 user: id
-            }).sort({createdAt: -1, updatedAt: -1})
+            }).sort({ createdAt: -1, updatedAt: -1 })
             if (order === null) {
                 resolve({
                     status: 'ERR',
@@ -131,7 +174,6 @@ const getOrderDetails = (id) => {
                 data: order
             })
         } catch (e) {
-            // console.log('e', e)
             reject(e)
         }
     })
@@ -144,16 +186,18 @@ const cancelOrderDetails = (id, data) => {
             const promises = data.map(async (order) => {
                 const productData = await Product.findOneAndUpdate(
                     {
-                    _id: order.product,
-                    selled: {$gte: order.amount}
+                        _id: order.product,
+                        selled: { $gte: order.amount }
                     },
-                    {$inc: {
-                        countInStock: +order.amount,
-                        selled: -order.amount
-                    }},
-                    {new: true}
+                    {
+                        $inc: {
+                            countInStock: +order.amount,
+                            selled: -order.amount
+                        }
+                    },
+                    { new: true }
                 )
-                if(productData) {
+                if (productData) {
                     order = await Order.findByIdAndDelete(id)
                     if (order === null) {
                         resolve({
@@ -162,7 +206,7 @@ const cancelOrderDetails = (id, data) => {
                         })
                     }
                 } else {
-                    return{
+                    return {
                         status: 'OK',
                         message: 'ERR',
                         id: order.product
@@ -171,8 +215,8 @@ const cancelOrderDetails = (id, data) => {
             })
             const results = await Promise.all(promises)
             const newData = results && results[0] && results[0].id
-            
-            if(newData) {
+
+            if (newData) {
                 resolve({
                     status: 'ERR',
                     message: `San pham voi id: ${newData} khong ton tai`
@@ -192,7 +236,7 @@ const cancelOrderDetails = (id, data) => {
 const getAllOrder = () => {
     return new Promise(async (resolve, reject) => {
         try {
-            const allOrder = await Order.find().sort({createdAt: -1, updatedAt: -1})
+            const allOrder = await Order.find().sort({ createdAt: -1, updatedAt: -1 })
             resolve({
                 status: 'OK',
                 message: 'Success',

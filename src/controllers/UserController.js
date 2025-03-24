@@ -156,52 +156,6 @@ const verifyOtp = async (req, res) => {
     }
 }
 
-// const loginUser = async (req, res) => {
-//     try {
-//         const { email, password } = req.body;
-//         if (!email || !password) {
-//             return res.status(400).json({
-//                 status: 'ERR',
-//                 message: 'Email and password are required'
-//             });
-//         }
-//         const reg = /^\w+([-+.']\w+)*@\w+([-.]\w+)*\.\w+([-.]\w+)*$/;
-//         const isCheckEmail = reg.test(email);
-//         if (!isCheckEmail) {
-//             return res.status(400).json({
-//                 status: 'ERR',
-//                 message: 'Thông tin mật khẩu không hợp lệ'
-//             })
-//         }
-
-//         const response = await UserService.loginUser(req.body);
-
-//         if (response.status === 'ERR') {
-//             return res.status(401).json({
-//                 status: 'ERR',
-//                 message: response.message
-//             });
-//         } 
-
-//         const { refresh_token, ...newResponse } = response;
-//         res.cookie('refresh_token', refresh_token, {
-//             httpOnly: true,
-//             secure: false,
-//             sameSite: 'strict',
-//             path: '/',
-//         });
-
-//         return res.status(200).json({ ...newResponse, refresh_token });
-
-//     } catch (e) {
-//         return res.status(500).json({
-//             status: 'ERR',
-//             message: 'Internal Server Error',
-//             error: e.message
-//         });
-//     }
-// };
-
 const loginUser = async (req, res) => {
     try {
         const { email, password } = req.body;

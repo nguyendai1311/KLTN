@@ -10,8 +10,8 @@ const generateOtp = () => {
 
 const sendOtp = async (email) => {
     try {
-        const now = Date.now(); // Current timestamp in milliseconds
-        const cooldownPeriod = 60 * 1000; // 1 minute cooldown period (in milliseconds)
+        const now = Date.now(); 
+        const cooldownPeriod = 60 * 1000; 
         if (otps[email]) {
             const { sentAt } = otps[email];
             if (now - sentAt < cooldownPeriod) {
@@ -108,47 +108,6 @@ const resetPassword = async (email, otp, newPassword) => {
     }
 };
 
-
-// const loginUser = (userLogin) => {
-//     return new Promise(async (resolve, reject) => {
-//         const { email, password } = userLogin;
-//         try {
-//             const checkUser = await User.findOne({ email });
-//             if (!checkUser) {
-//                 return resolve({
-//                     status: 'ERR',
-//                     message: 'Tài khoản không tồn tại vui lòng đăng kí!'
-//                 });
-//             }
-//             const comparePassword = bcrypt.compareSync(password, checkUser.password);
-//             if (!comparePassword) {
-//                 return resolve({
-//                     status: 'ERR',
-//                     message: 'Thông tin tài khoản hoặc mật khẩu không chính xác'
-//                 });
-//             }
-//             const access_token = await genneralAccessToken({
-//                 id: checkUser.id,
-//                 isAdmin: checkUser.isAdmin
-//             });
-//             console.log('access',access_token);
-//             const refresh_token = await genneralRefreshToken({
-//                 id: checkUser.id,
-//                 isAdmin: checkUser.isAdmin
-//             });
-
-//             resolve({
-//                 status: 'OK',
-//                 message: 'Login successful',
-//                 access_token,
-//                 refresh_token
-//             });
-//         } catch (e) {
-//             reject(e);
-//         }
-//     });
-// };
-
 const loginUser = (userLogin) => {
     return new Promise(async (resolve, reject) => {
         const { email, password } = userLogin;
@@ -169,12 +128,15 @@ const loginUser = (userLogin) => {
             }
             const access_token = await genneralAccessToken({
                 id: checkUser.id,
-                isAdmin: checkUser.isAdmin
+                isAdmin: checkUser.isAdmin,
+                isTeacher: checkUser.isTeacher
+                
             });
 
             const refresh_token = await genneralRefreshToken({
                 id: checkUser.id,
-                isAdmin: checkUser.isAdmin
+                isAdmin: checkUser.isAdmin,
+                isTeacher: checkUser.isTeacher
             });
 
             resolve({
@@ -228,7 +190,6 @@ const deleteUser = (id) => {
                     message: 'the user is not defined'
                 })
             }
-
             await User.findByIdAndDelete(id)
             resolve({
                 status: 'ok',
@@ -284,7 +245,6 @@ const getDetailsUser = (id) => {
                     message: 'the user is not defined'
                 })
             }
-
             resolve({
                 status: 'ok',
                 message: 'Succes',
