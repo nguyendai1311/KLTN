@@ -25,10 +25,10 @@ const addClassToCourse = async (req, res) => {
 
 const createCourse = async (req, res) => {
     try {
-        const { name, image, type, countInStock, price, rating, description, discount, teacher, classes } = req.body;
+        const { name, image, type, studentCount, price, rating, description, discount, teacher, classes } = req.body;
 
         // Kiểm tra input
-        if (!name || !type || !countInStock ||!rating|| !price  || !discount || !teacher || !classes) {
+        if (!name || !type || !studentCount ||!rating|| !price  || !discount || !teacher || !classes) {
             return res.status(400).json({
                 status: 'ERR',
                 message: 'All fields are required',
@@ -49,7 +49,7 @@ const createCourse = async (req, res) => {
             name,
             image,
             type,
-            countInStock: Number(countInStock),
+            studentCount: Number(studentCount),
             price,
             rating,
             description,

@@ -1,36 +1,51 @@
 const mongoose = require("mongoose");
-const Attendance = require('../models/Attendance');
-const Class = require('../models/ClassModel');
+const Attendance = require("../models/Attendance");
+const Class = require("../models/ClassModel");
 
-const bulkAttendance  = async (classroomId, attendances, teacherId) => {
+const bulkAttendance = async (classroomId, attendances, teacherId) => {
     // Kiểm tra lớp học có tồn tại không
     const classroom = await Class.findById(classroomId);
     if (!classroom) {
         throw new Error("Lớp học không tồn tại");
     }
-    // Nếu lớp học có trường students, kiểm tra học viên có thuộc lớp hay không
-    if (classroom.students && Array.isArray(classroom.students)) {
-        for (let record of attendances) {
-            if (!classroom.students.includes(record.studentId)) {
-                throw new Error(`Học viên ${record.studentId} không thuộc lớp học này`);
-            }
-        }
+
+    // Kiểm tra danh sách điểm danh có hợp lệ không
+    if (!Array.isArray(attendances) || attendances.length === 0) {
+        throw new Error("Danh sách điểm danh không hợp lệ");
     }
-    // Tạo mảng bản ghi điểm danh cho từng học viên
-    const records = attendances.map(record => ({
-        course: classroom.course,
+
+    // Lấy danh sách học viên trong lớp dưới dạng String
+    const studentList = classroom.students.map(id => id.toString());
+
+    // Kiểm tra tính hợp lệ của từng bản ghi điểm danh
+    const isValid = attendances.every(record => 
+        record.student && 
+        record.status && 
+        studentList.includes(record.student)
+    );
+
+    if (!isValid) {
+        throw new Error("Có học viên không thuộc lớp học hoặc thiếu dữ liệu `student/status`");
+    }
+
+    // Tạo document điểm danh
+    const attendanceRecord = {
         classroom: new mongoose.Types.ObjectId(classroomId),
-        student: new mongoose.Types.ObjectId(record.studentId),
+        course: classroom.course,
         teacher: new mongoose.Types.ObjectId(teacherId),
-        status: record.status,
-        date: new Date()
-    }));
-    console.log("Records to insert:", records);
-    // Chèn hàng loạt các bản ghi
-    const insertedRecords = await Attendance.insertMany(records);
-    return insertedRecords;
+        date: new Date(),
+        attendances: attendances.map(record => ({
+            student: new mongoose.Types.ObjectId(record.student),
+            status: record.status
+        }))
+    };
+
+    console.log("✅ Dữ liệu điểm danh chuẩn bị lưu:", JSON.stringify(attendanceRecord, null, 2));
+
+    // Lưu vào database
+    return await Attendance.create(attendanceRecord);
 };
 
 module.exports = {
-    bulkAttendance 
+    bulkAttendance
 };

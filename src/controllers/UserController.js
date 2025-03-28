@@ -82,6 +82,63 @@ const createUser = async (req, res) => {
     }
 }
 
+const createTeacher = async (req, res) => {
+    try {
+        const { name, email, password, confirmPassword, phone,otp } = req.body;
+
+        const emailReg = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+        const isEmailValid = emailReg.test(email);
+
+        const passwordReg = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$/;
+        const isPasswordValid = passwordReg.test(password);
+
+        if (!email || !password || !confirmPassword) {
+            return res.status(400).json({
+                status: 'ERR',
+                message: 'The input is required'
+            });
+            
+        } else if (!isEmailValid) {
+            return res.status(400).json({
+                status: 'ERR',
+                message: 'Email không hợp lệ'
+            });
+        } else if (!isPasswordValid) {
+            return res.status(400).json({
+                status: 'ERR',
+                message: 'Password phải có ít nhất 8 ký tự, bao gồm một chữ cái viết hoa, một chữ cái viết thường, một số và một ký tự đặc biệt.'
+            });
+        } else if (password !== confirmPassword) {
+            return res.status(400).json({
+                status: 'ERR',
+                message: 'Password và confirmPassword không khớp.'
+            });
+        }
+ 
+        const existingUser = await User.findOne({ email });
+        if (existingUser) {
+            return res.status(400).json({
+                status: 'ERR',
+                message: 'Email đã tồn tại. Vui lòng chọn email khác.'
+            });
+        }
+        
+        if (!otps[email] || otps[email].otp !== otp) {
+            return res.status(400).json({
+                status: 'ERR',
+                message: 'OTP không hợp lệ.'
+            });
+        }
+
+        const response = await UserService.createTeacher(req.body);
+        return res.status(200).json(response);
+    } catch (e) {
+        return res.status(500).json({ 
+            message: e.message || 'Internal server error'
+        });
+    }
+}
+
 const resendOtp = async (req, res) => {
     try {
         const { email } = req.body;
@@ -330,5 +387,6 @@ module.exports = {
     getDetailsUser,
     refreshToken,
     logoutUser,
-    deleteMany
+    deleteMany,
+    createTeacher
 }

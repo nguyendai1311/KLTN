@@ -8,6 +8,8 @@ const ClassroomSchema = new mongoose.Schema(
         students: [{ type: mongoose.Schema.Types.ObjectId, ref: 'User' }], // Danh sách học viên trong lớp
         schedule: { type: String, required: true },
         address: { type: String, required: true }, // Địa điểm học
+        startDate: { type: Date, required: true }, // Ngày bắt đầu lớp học
+        endDate: { type: Date, required: true }, // Ngày kết thúc lớp học
     },
     {
         timestamps: true

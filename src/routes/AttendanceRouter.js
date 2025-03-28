@@ -3,5 +3,5 @@ const router = express.Router();
 const Attendance = require("../controllers/Attendance");
 const { authTeacherMiddleWare } = require("../middleware/authMiddleware");
 
-router.post("/:classroomId/bulk",authTeacherMiddleWare, Attendance.AttendanceController);
+router.post("/bulk",authTeacherMiddleWare, Attendance.bulkAttendance);
 module.exports = router;

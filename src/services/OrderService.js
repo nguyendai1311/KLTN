@@ -10,10 +10,10 @@ const EmailService = require('./EmailService')
 //         // Kiểm tra tồn kho và cập nhật số lượng khóa học đã bán
 //         const promises = orderItems.map(async (order) => {
 //             const CourseData = await Course.findOneAndUpdate(
-//                 { _id: order.course, countInStock: { $gte: order.amount } },
+//                 { _id: order.course, studentCount: { $gte: order.amount } },
 //                 {
 //                     $inc: {
-//                         countInStock: -order.amount,
+//                         studentCount: -order.amount,
 //                         selled: order.amount
 //                     }
 //                 },
@@ -65,8 +65,8 @@ const createOrder = async (newOrder) => {
 
         for (const order of orderItems) {
             const CourseData = await Course.findOneAndUpdate(
-                { _id: order.course, countInStock: { $gte: order.amount } },
-                { $inc: { countInStock: -order.amount, selled: order.amount } },
+                { _id: order.course, studentCount: { $gte: order.amount } },
+                { $inc: { studentCount: -order.amount, selled: order.amount } },
                 { new: true }
             );
 
@@ -191,7 +191,7 @@ const cancelOrderDetails = (id, data) => {
                     },
                     {
                         $inc: {
-                            countInStock: +order.amount,
+                            studentCount: +order.amount,
                             selled: -order.amount
                         }
                     },

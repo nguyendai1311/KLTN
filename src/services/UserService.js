@@ -5,13 +5,13 @@ const EmailService = require('../services/EmailService')
 const otps = {};
 
 const generateOtp = () => {
-    return (Math.floor(100000 + Math.random() * 900000)).toString(); 
+    return (Math.floor(100000 + Math.random() * 900000)).toString();
 };
 
 const sendOtp = async (email) => {
     try {
-        const now = Date.now(); 
-        const cooldownPeriod = 60 * 1000; 
+        const now = Date.now();
+        const cooldownPeriod = 60 * 1000;
         if (otps[email]) {
             const { sentAt } = otps[email];
             if (now - sentAt < cooldownPeriod) {
@@ -44,7 +44,7 @@ const createUser = (newUser) => {
     return new Promise(async (resolve, reject) => {
         const { name, email, password, confirmPassword, phone } = newUser
         try {
-            
+
             const hash = bcrypt.hashSync(password, 10)
             const createdUser = await User.create({
                 name,
@@ -65,7 +65,33 @@ const createUser = (newUser) => {
     })
 }
 
-const resendOtp = async (userData) => { 
+const createTeacher = (newTeacher) => {
+    return new Promise(async (resolve, reject) => {
+        const { name, email, password, confirmPassword, phone } = newTeacher
+        try {
+
+            const hash = bcrypt.hashSync(password, 10)
+            const createdUser = await User.create({
+                name,
+                email,
+                password: hash,
+                phone,
+                isTeacher: true
+            })
+            if (createdUser) {
+                resolve({
+                    status: 'OK',
+                    message: 'SUCCESS',
+                    data: createdUser
+                })
+            }
+        } catch (e) {
+            reject(e)
+        }
+    })
+}
+
+const resendOtp = async (userData) => {
     const { email } = userData;
     // Kiểm tra xem email có tồn tại trong danh sách OTP không
     if (!otps[email]) {
@@ -130,7 +156,7 @@ const loginUser = (userLogin) => {
                 id: checkUser.id,
                 isAdmin: checkUser.isAdmin,
                 isTeacher: checkUser.isTeacher
-                
+
             });
 
             const refresh_token = await genneralRefreshToken({
@@ -269,5 +295,6 @@ module.exports = {
     deleteUser,
     getAllUser,
     getDetailsUser,
-    deleteManyUser
+    deleteManyUser,
+    createTeacher
 }

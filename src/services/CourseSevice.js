@@ -40,7 +40,7 @@ const addClassToCourse = async (courseId, classData) => {
 
 const createCourse = async (newCourse) => {
     try {
-        const { name, image, type, countInStock,rating, price, description, discount, teacherId, classes } = newCourse;
+        const { name, image, type, studentCount,rating, price, description, discount, teacherId, classes } = newCourse;
 
         // Kiểm tra xem khóa học đã tồn tại chưa
         const checkCourse = await Course.findOne({ name });
@@ -65,7 +65,7 @@ const createCourse = async (newCourse) => {
             name,
             image,
             type,
-            countInStock: Number(countInStock),
+            studentCount: Number(studentCount),
             rating,
             price,
             description,
