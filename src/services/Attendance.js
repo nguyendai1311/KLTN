@@ -1,6 +1,8 @@
 const mongoose = require("mongoose");
+const User = require("../models/UserModel");
 const Attendance = require("../models/Attendance");
 const Class = require("../models/ClassModel");
+const EmailService = require('./EmailService')
 
 const bulkAttendance = async (classroomId, attendances, teacherId) => {
     // Kiểm tra lớp học có tồn tại không
@@ -14,14 +16,16 @@ const bulkAttendance = async (classroomId, attendances, teacherId) => {
         throw new Error("Danh sách điểm danh không hợp lệ");
     }
 
-    // Lấy danh sách học viên trong lớp dưới dạng String
-    const studentList = classroom.students.map(id => id.toString());
+    // Lấy danh sách học viên trong lớp
+    const studentList = await User.find({
+        _id: { $in: classroom.students }
+    }).distinct("_id");
 
     // Kiểm tra tính hợp lệ của từng bản ghi điểm danh
-    const isValid = attendances.every(record => 
-        record.student && 
-        record.status && 
-        studentList.includes(record.student)
+    const isValid = attendances.every(record =>
+        record.student &&
+        record.status &&
+        studentList.some(id => id.toString() === record.student.toString())
     );
 
     if (!isValid) {
@@ -43,8 +47,21 @@ const bulkAttendance = async (classroomId, attendances, teacherId) => {
     console.log("✅ Dữ liệu điểm danh chuẩn bị lưu:", JSON.stringify(attendanceRecord, null, 2));
 
     // Lưu vào database
-    return await Attendance.create(attendanceRecord);
+    const result = await Attendance.create(attendanceRecord);
+
+    // Populate học sinh từ User model
+    const populatedAttendance = await result.populate({
+        path: "attendances.student",
+        model: "User",
+        select: "name email"
+    });
+    console.log("📢 Dữ liệu sau populate:", JSON.stringify(populatedAttendance, null, 2));
+    // Gửi email cho phụ huynh
+    EmailService.sendAttendanceEmails(populatedAttendance.attendances);
+
+    return result;
 };
+
 
 module.exports = {
     bulkAttendance

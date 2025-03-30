@@ -3,64 +3,9 @@ const Course = require('../models/CourseModel')
 const Class = require('../models/ClassModel');
 const EmailService = require('./EmailService')
 
-
-// const createOrder = async (newOrder) => {
-//     const { orderItems, paymentMethod, itemsPrice, totalPrice, user, isPaid, paidAt, email } = newOrder;
-//     try {
-//         // Kiểm tra tồn kho và cập nhật số lượng khóa học đã bán
-//         const promises = orderItems.map(async (order) => {
-//             const CourseData = await Course.findOneAndUpdate(
-//                 { _id: order.course, studentCount: { $gte: order.amount } },
-//                 {
-//                     $inc: {
-//                         studentCount: -order.amount,
-//                         selled: order.amount
-//                     }
-//                 },
-//                 { new: true }
-//             );
-
-//             return CourseData
-//                 ? { status: 'OK', message: 'SUCCESS' }
-//                 : { status: 'ERR', id: order.course };
-//         });
-
-//         const results = await Promise.all(promises);
-//         const failedOrders = results.filter((item) => item.status === 'ERR');
-
-//         if (failedOrders.length) {
-//             const arrId = failedOrders.map((item) => item.id);
-//             return { status: 'ERR', message: `Lớp học với ID: ${arrId.join(', ')} không đủ chỗ` };
-//         }
-
-//         // Tạo đơn hàng
-//         const createdOrder = await Order.create({
-//             orderItems,
-//             paymentMethod,
-//             itemsPrice,
-//             totalPrice,
-//             user,
-//             isPaid,
-//             paidAt
-//         });
-
-//         // ✅ Sau khi tạo đơn hàng, tự động thêm sinh viên vào lớp học
-//         await Promise.all(orderItems.map(async (order) => {
-//             await ClassroomService.addStudentToClass(order.course, user);
-//         }));
-
-//         // Gửi email xác nhận đơn hàng
-//         await EmailService.sendEmailCreateOrder(email, orderItems);
-
-//         return { status: 'OK', message: 'Success' };
-//     } catch (error) {
-//         throw new Error(error.message);
-//     }
-// };
-
 const createOrder = async (newOrder) => {
     try {
-        const { orderItems, paymentMethod, itemsPrice, totalPrice, fullName, city, phone, user, isPaid, paidAt, email } = newOrder;
+        const { orderItems, itemsPrice, totalPrice, fullName, city, phone, user, isPaid, paidAt, email } = newOrder;
         const failedOrders = [];
 
         for (const order of orderItems) {
@@ -79,55 +24,46 @@ const createOrder = async (newOrder) => {
                     { $addToSet: { students: user } },
                     { new: true }
                 );
-
                 if (updatedClass) {
                     console.log(`✅ Học sinh ${user} đã được thêm vào lớp ${updatedClass.name}`);
                 }
             }
         }
-
         if (failedOrders.length) {
             return {
                 status: 'ERR',
                 message: `Lớp học với ID: ${failedOrders.join(', ')} không đủ chỗ`
             };
         }
-
         // 🛒 Tạo đơn hàng mới
         const createdOrder = await Order.create({
             orderItems,
-            paymentMethod,
             itemsPrice,
             totalPrice,
             user,
             isPaid,
             paidAt
         });
-
         if (!createdOrder) {
             return {
                 status: 'ERR',
                 message: 'Không thể tạo đơn hàng'
             };
         }
-
         // 📧 Gửi email xác nhận đơn hàng nếu có email
         if (email) {
             await EmailService.sendEmailCreateOrder(email, orderItems);
         }
-
         return {
             status: 'OK',
             message: 'Đơn hàng được tạo thành công',
             data: createdOrder
         };
-
     } catch (error) {
         console.error("❌ Lỗi khi tạo đơn hàng:", error);
         throw new Error(error.message);
     }
 };
-
 
 
 const getAllOrderDetails = (id) => {
@@ -142,7 +78,6 @@ const getAllOrderDetails = (id) => {
                     message: 'The order is not defined'
                 })
             }
-
             resolve({
                 status: 'OK',
                 message: 'SUCESSS',
@@ -167,7 +102,6 @@ const getOrderDetails = (id) => {
                     message: 'The order is not defined'
                 })
             }
-
             resolve({
                 status: 'OK',
                 message: 'SUCESSS',
