@@ -54,7 +54,28 @@ const authTeacherMiddleWare = (req, res, next) => {
     });
 };
 
+const authUserMiddleWare = async (req, res, next) => {
+    const authHeader = req.headers.authorization;
+    if (!authHeader || !authHeader.startsWith("Bearer ")) {
+        return res.status(401).json({ message: "Unauthorized: No token provided" });
+    }
+    const token = authHeader.split(" ")[1];
+    jwt.verify(token, process.env.ACCESS_TOKEN, (err, user) => {
+        if (err) {
+            return res.status(403).json({ message: "Invalid token" });
+        }
+        if (!user || !user.id) { // 🔍 Kiểm tra `id`
+            return res.status(403).json({ message: "Thông tin người dùng không hợp lệ!" });
+        }
+        req.user = { _id: user.id }; // ✅ Gán `id` vào request
+        next();
+    });
+};
+
+
+
 module.exports = {
     authMiddleWare,
-    authTeacherMiddleWare
+    authTeacherMiddleWare,
+    authUserMiddleWare
 }
