@@ -6,7 +6,7 @@ const createCourse = async (req, res) => {
         const { name, image, type, studentCount, price, rating, description, discount } = req.body;
 
         // Kiểm tra input
-        if (!name || !type || !studentCount ||!rating|| !price  || !discount ) {
+        if (!name || !type  ||!rating|| !price  || !discount ) {
             return res.status(400).json({
                 status: 'ERR',
                 message: 'All fields are required',
@@ -22,7 +22,6 @@ const createCourse = async (req, res) => {
             rating,
             description,
             discount: Number(discount),
-            classes, // Danh sách lớp học
         });
 
         return res.status(201).json({
@@ -68,7 +67,7 @@ const getDetailsCourse = async (req, res) => {
                 message: 'The courseId is required'
             })
         }
-        const response = await ProductService.getDetailsProduct(courseId)
+        const response = await CourseService.getDetailsCourse(courseId)
         return res.status(200).json(response)
     } catch (e) {
         return res.status(404).json({
