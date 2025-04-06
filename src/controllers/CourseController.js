@@ -2,45 +2,15 @@ const CourseService = require('../services/CourseSevice')
 const User = require('../models/UserModel')
 const Course = require('../models/CourseModel')
 
-const addClassToCourse = async (req, res) => {
-    try {
-        const { courseId } = req.params;
-        const classData = req.body;
-
-        const newClass = await CourseService.addClassToCourse(courseId, classData);
-
-        return res.status(201).json({
-            status: 'OK',
-            message: 'Class added successfully',
-            data: newClass,
-        });
-    } catch (error) {
-        return res.status(500).json({
-            status: 'ERR',
-            message: 'Internal server error',
-            error: error.message,
-        });
-    }
-};
-
 const createCourse = async (req, res) => {
     try {
-        const { name, image, type, studentCount, price, rating, description, discount, teacher, classes } = req.body;
+        const { name, image, type, studentCount, price, rating, description, discount } = req.body;
 
         // Kiểm tra input
-        if (!name || !type || !studentCount ||!rating|| !price  || !discount || !teacher || !classes) {
+        if (!name || !type || !studentCount ||!rating|| !price  || !discount ) {
             return res.status(400).json({
                 status: 'ERR',
                 message: 'All fields are required',
-            });
-        }
-
-        // Kiểm tra xem giảng viên có tồn tại không
-        const checkTeacher = await User.findById(teacher);
-        if (!checkTeacher || !checkTeacher.isTeacher) {
-            return res.status(400).json({
-                status: 'ERR',
-                message: 'Invalid teacher ID',
             });
         }
 
@@ -49,12 +19,10 @@ const createCourse = async (req, res) => {
             name,
             image,
             type,
-            studentCount: Number(studentCount),
             price,
             rating,
             description,
             discount: Number(discount),
-            teacher, // Gán giảng viên
             classes, // Danh sách lớp học
         });
 
