@@ -58,6 +58,25 @@ const updateCourse = async (req, res) => {
     }
 }
 
+// const updateCourse = async (req, res) => {
+//     try {
+//         const courseId = req.params.id
+//         const data = req.body
+//         if (!courseId) {
+//             return res.status(200).json({
+//                 status: 'ERR',
+//                 message: 'The courseId is required'
+//             })
+//         }
+//         const response = await CourseService.updateCourse(courseId, data)
+//         return res.status(200).json(response)
+//     } catch (e) {
+//         return res.status(404).json({
+//             message: e
+//         })
+//     }
+// }
+
 const getDetailsCourse = async (req, res) => {
     try {
         const courseId = req.params.id
