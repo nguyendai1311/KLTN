@@ -1,20 +1,30 @@
 const Class = require("../models/ClassModel");
 
-//  Tạo lớp học mới
-const createClass = (classData) => {
-    return new Promise(async (resolve, reject) => {
-        try {
-            const newClass = await Class.create(classData);
-            resolve({
-                status: "OK",
-                message: "Tạo lớp học thành công",
-                data: newClass
-            });
-        } catch (e) {
-            reject(e);
-        }
-    });
+const createClass = async (newClass) => {
+    const { name } = newClass;
+    const checkClass = await Class.findOne({ name });
+    if (checkClass) {
+        return {
+            status: 'ERR',
+            message: 'The name of class already exists'
+        };
+    }
+
+    try {
+        const createdClass = await Class.create(newClass); // Using newClass directly
+        return {
+            status: "OK",
+            message: "Tạo lớp học thành công",
+            data: createdClass
+        };
+    } catch (e) {
+        return {
+            status: 'ERR',
+            message: e.message || 'An error occurred while creating the class'
+        };
+    }
 };
+
 
 //  Lấy danh sách tất cả lớp học
 const getAllClasses = () => {

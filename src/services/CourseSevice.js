@@ -1,48 +1,9 @@
 const Course = require("../models/CourseModel")
-const Classroom = require('../models/ClassModel')
-const User = require('../models/UserModel')
-
-const addClassToCourse = async (courseId, classData) => {
-    try {
-        const { name, schedule, address, teacherId } = classData;
-
-        // Kiểm tra khóa học có tồn tại không
-        const course = await Course.findById(courseId);
-        if (!course) {
-            throw new Error('Course not found');
-        }
-
-        // Kiểm tra giảng viên có tồn tại không
-        const teacher = await User.findById(teacherId);
-        if (!teacher || !teacher.isTeacher) {
-            throw new Error('Invalid teacher ID');
-        }
-
-        // Tạo lớp học mới
-        const newClass = await Classroom.create({
-            name,
-            course: courseId,
-            teacher: teacherId,
-            schedule,
-            address,
-        });
-
-        // Cập nhật khóa học để thêm lớp học
-        course.classrooms.push(newClass._id);
-        await course.save();
-
-        return newClass;
-    } catch (error) {
-        throw new Error(error.message);
-    }
-};
-
 
 const createCourse = async (newCourse) => {
     try {
-        const { name, image, type, studentCount,rating, price, description, discount, teacherId, classes } = newCourse;
+        const { name, image, type,rating, price, description, discount } = newCourse;
 
-        // Kiểm tra xem khóa học đã tồn tại chưa
         const checkCourse = await Course.findOne({ name });
         if (checkCourse) {
             return {
@@ -51,46 +12,20 @@ const createCourse = async (newCourse) => {
             };
         }
 
-        // Kiểm tra giảng viên có tồn tại không
-        const teacher = await User.findById(teacherId);
-        if (!teacher || !teacher.isTeacher) {
-            return {
-                status: 'ERR',
-                message: 'Teacher not found or is not a teacher'
-            };
-        }
-
-        // Tạo khóa học mới
         const createdCourse = await Course.create({
             name,
             image,
             type,
-            studentCount: Number(studentCount),
             rating,
             price,
             description,
             discount: Number(discount),
-            teacher: teacherId, // Gán giảng viên cho khóa học
         });
-
-        // Tạo các lớp học nếu có danh sách `classes`
-        let createdClasses = [];
-        if (Array.isArray(classes) && classes.length > 0) {
-            createdClasses = await Promise.all(classes.map(async (cls) => {
-                return await Classroom.create({
-                    name: cls.name,
-                    course: createdCourse._id,
-                    teacher: teacherId,
-                    schedule: cls.schedule,
-                    address: cls.address,
-                });
-            }));
-        }
 
         return {
             status: 'OK',
             message: 'SUCCESS',
-            data: { createdCourse, createdClasses }
+            data: { createdCourse }
         };
     } catch (error) {
         return {
@@ -251,6 +186,5 @@ module.exports = {
     deleteCourse,
     getAllCourse,
     deleteManyCourse,
-    getAllType,
-    addClassToCourse
+    getAllType
 }

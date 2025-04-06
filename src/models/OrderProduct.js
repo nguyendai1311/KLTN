@@ -7,9 +7,9 @@ const orderSchema = new mongoose.Schema({
             image: { type: String},
             price: { type: Number, required: true },
             discount: { type: Number },
-            course: {
+            class: {
                 type: mongoose.Schema.Types.ObjectId,
-                ref: 'Course',
+                ref: 'Class',
                 required: true,
             },
             timeAdded: { type: Date, default: Date.now }

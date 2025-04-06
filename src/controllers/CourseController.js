@@ -1,5 +1,4 @@
 const CourseService = require('../services/CourseSevice')
-const User = require('../models/UserModel')
 const Course = require('../models/CourseModel')
 
 const createCourse = async (req, res) => {
@@ -144,6 +143,5 @@ module.exports = {
     deleteCourse,
     getAllCourse,
     deleteMany,
-    getAllType,
-    addClassToCourse
+    getAllType
 }
