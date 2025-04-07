@@ -3,7 +3,7 @@ const Course = require('../models/CourseModel')
 
 const createCourse = async (req, res) => {
     try {
-        const { name, image, type, studentCount, price, rating, description, discount } = req.body;
+        const { name, image, type, classes, price, rating, description, discount } = req.body;
 
         // Kiểm tra input
         if (!name || !type  ||!rating|| !price  || !discount ) {
@@ -22,6 +22,7 @@ const createCourse = async (req, res) => {
             rating,
             description,
             discount: Number(discount),
+            classes
         });
 
         return res.status(201).json({
