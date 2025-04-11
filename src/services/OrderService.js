@@ -2,6 +2,8 @@ const Order = require('../models/OrderProduct')
 const Course = require('../models/CourseModel')
 const Class = require('../models/ClassModel');
 const EmailService = require('./EmailService')
+const mongoose = require('mongoose');
+
 
 const createOrder = async (newOrder) => {
     try {
@@ -48,10 +50,10 @@ const createOrder = async (newOrder) => {
                 failedOrders.push(`Lịch học của lớp ${classToUpdate.name} trùng với lớp đã đăng ký: ${overlappingClass.name}`);
                 continue;
             }
-
+            console.log("order.class:", order.class);
             // Cập nhật lớp học nếu tất cả các kiểm tra đều thành công
             const updatedClass = await Class.findOneAndUpdate(
-                { _id: order.class },
+                { _id: new mongoose.Types.ObjectId(order.class) },  // 👈 Ép kiểu ObjectId ở đây
                 { 
                     $inc: { maxStudent: -order.amount },
                     $addToSet: { students: user }

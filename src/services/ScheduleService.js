@@ -5,7 +5,7 @@ const getStudentSchedule = async (studentId) => {
         const classes = await Classroom.find({ students: studentId })
             .populate('course', 'name')
             .populate('teacher', 'name')
-            .select('name schedule address course teacher'); // 🕒 📍 Lấy giờ học & địa chỉ
+            .select('name schedule address course teacher startDate endDate'); // 🕒 📍 Lấy giờ học & địa chỉ
 
         return {
             status: 'OK',
