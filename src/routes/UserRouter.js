@@ -15,6 +15,6 @@ router.delete('/delete-user/:id', userController.deleteUser)
 router.get('/get-details/:id', userController.getDetailsUser)
 router.get('/get-all', userController.getAllUser)
 router.post('/delete-many', authMiddleWare, userController.deleteMany)
-router.post('/create-teacher', authMiddleWare, userController.createTeacher)
+router.post('/create-teacher', userController.createTeacher)
 
 module.exports = router

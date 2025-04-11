@@ -52,6 +52,32 @@ const getExamById = (id) => {
     });
 };
 
+const getExamsByTeacherId = (teacherId) => {
+    return new Promise(async (resolve, reject) => {
+        try {
+            const exams = await Exam.find({ teacher: teacherId })
+                .populate("class")
+                .populate("teacher");
+
+            if (!exams || exams.length === 0) {
+                resolve({
+                    status: "NOT_FOUND",
+                    message: "Không tìm thấy bài kiểm tra nào cho giảng viên này"
+                });
+            } else {
+                resolve({
+                    status: "OK",
+                    message: "Lấy danh sách bài kiểm tra thành công",
+                    data: exams
+                });
+            }
+        } catch (error) {
+            reject(error);
+        }
+    });
+};
+
+
 const updateExam = (id, updateData) => {
     return new Promise(async (resolve, reject) => {
         try {
@@ -100,5 +126,6 @@ module.exports =  {
     getAllExams,
     getExamById,
     updateExam,
-    deleteExam
+    deleteExam,
+    getExamsByTeacherId
 };

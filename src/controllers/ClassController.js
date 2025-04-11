@@ -9,7 +9,7 @@ const createClass = async (req, res) => {
             name,
             course,
             teacher,
-            studentCount,
+            maxStudent,
             schedule,
             address,
             startDate,
@@ -29,7 +29,7 @@ const createClass = async (req, res) => {
             name,
             course,
             teacher,
-            studentCount,
+            maxStudent,
             schedule,
             address,
             startDate,
@@ -113,10 +113,29 @@ const deleteClass = async (req, res) => {
     }
 };
 
+
+
+const getTotalStudentByCourses = async (req, res) => {
+    try {
+        const result = await classService.getTotalStudentByCourses();
+
+        return res.status(200).json(result);
+    } catch (error) {
+        console.error("❌ Lỗi khi lấy tổng học viên theo khóa học:", error.message);
+        return res.status(500).json({
+            status: "ERROR",
+            message: "Lỗi server",
+            error: error.message
+        });
+    }
+};
+
+
 module.exports = {
     createClass,
     getAllClasses,
     getClassById,
     updateClass,
-    deleteClass
+    deleteClass,
+    getTotalStudentByCourses
 };

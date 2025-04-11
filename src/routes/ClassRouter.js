@@ -8,5 +8,6 @@ router.get("/get-all", ClassController.getAllClasses);
 router.get("/get-class-by-id/:id", authMiddleWare, ClassController.getClassById);
 router.put("/update/:id", authMiddleWare, ClassController.updateClass);
 router.delete("/delete/:id", authMiddleWare, ClassController.deleteClass);
+router.get("/get-all-students", authMiddleWare, ClassController.getTotalStudentByCourses)
 
 module.exports = router;

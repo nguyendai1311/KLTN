@@ -5,7 +5,7 @@ const ClassroomSchema = new mongoose.Schema(
         name: { type: String, required: true }, // Tên lớp học
         course: { type: mongoose.Schema.Types.ObjectId, ref: 'Course', required: true }, // Khóa học thuộc về lớp này
         teacher: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true }, // Giảng viên phụ trách lớp
-        studentCount: { type: Number, required: true },
+        maxStudent: { type: Number, required: true },
         students: [{ type: mongoose.Schema.Types.ObjectId, ref: 'User' }], // Danh sách học viên trong lớp
         schedule: [
             {

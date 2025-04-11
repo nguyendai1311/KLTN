@@ -24,7 +24,7 @@ const createOrder = async (newOrder) => {
             }
 
             // Kiểm tra nếu lớp học không đủ chỗ
-            if (classToUpdate.studentCount < order.amount) {
+            if (classToUpdate.maxStudent < order.amount) {
                 failedOrders.push(`Lớp học ${classToUpdate.name} không đủ chỗ`);
                 continue;
             }
@@ -53,7 +53,7 @@ const createOrder = async (newOrder) => {
             const updatedClass = await Class.findOneAndUpdate(
                 { _id: order.class },
                 { 
-                    $inc: { studentCount: -order.amount },
+                    $inc: { maxStudent: -order.amount },
                     $addToSet: { students: user }
                 },
                 { new: true }
@@ -171,7 +171,7 @@ const cancelOrderDetails = (id, data) => {
                     },
                     {
                         $inc: {
-                            studentCount: +order.amount,
+                            maxStudent: +order.amount,
                             selled: -order.amount
                         }
                     },

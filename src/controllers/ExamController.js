@@ -28,6 +28,29 @@ const getExamById = async (req, res) => {
   }
 };
 
+const getExamsByTeacherId = async (req, res) => {
+  try {
+      const teacherId = req.params.id;
+
+      if (!teacherId) {
+          return res.status(400).json({
+              status: "ERROR",
+              message: "Thiếu ID giảng viên"
+          });
+      }
+
+      const result = await examService.getExamsByTeacherId(teacherId);
+      return res.status(200).json(result);
+
+  } catch (error) {
+      console.error("Lỗi khi lấy bài thi theo giảng viên:", error);
+      return res.status(500).json({
+          status: "ERROR",
+          message: "Có lỗi xảy ra ở server"
+      });
+  }
+};
+
 const updateExam = async (req, res) => {
   try {
     const updated = await examService.updateExam(req.params.id, req.body);
@@ -53,5 +76,6 @@ module.exports = {
   getAllExams,
   getExamById,
   updateExam,
-  deleteExam
+  deleteExam,
+  getExamsByTeacherId
 }

@@ -84,7 +84,7 @@ const createUser = async (req, res) => {
 
 const createTeacher = async (req, res) => {
     try {
-        const { name, email, password, confirmPassword, phone,otp } = req.body;
+        const { name, email, password, confirmPassword, phone } = req.body;
 
         const emailReg = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
         const isEmailValid = emailReg.test(email);
@@ -123,13 +123,6 @@ const createTeacher = async (req, res) => {
             });
         }
         
-        if (!otps[email] || otps[email].otp !== otp) {
-            return res.status(400).json({
-                status: 'ERR',
-                message: 'OTP không hợp lệ.'
-            });
-        }
-
         const response = await UserService.createTeacher(req.body);
         return res.status(200).json(response);
     } catch (e) {

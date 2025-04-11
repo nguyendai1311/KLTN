@@ -99,4 +99,64 @@ const deleteClass = (classId) => {
     });
 };
 
-module.exports = { createClass, getAllClasses, getClassById, updateClass, deleteClass };
+const getTotalStudent = () => {
+    return new Promise(async (resolve, reject) => {
+        try {
+            const classes = await Class.find().populate("course teacher students");
+
+            // Tính tổng số học viên từ tất cả các lớp
+            const totalStudents = classes.reduce((sum, classItem) => {
+                return sum + (classItem.students?.length || 0);
+            }, 0);
+
+            resolve({
+                status: "OK",
+                message: "Lấy danh sách lớp học thành công",
+                data: classes,
+                totalStudents
+            });
+        } catch (e) {
+            reject(e);
+        }
+    });
+};
+
+const getTotalStudentByCourses = () => {
+    return new Promise(async (resolve, reject) => {
+        try {
+            // Lấy toàn bộ lớp học và populate course, students
+            const classes = await Class.find().populate("course students");
+
+            const courseStudentMap = new Map();
+
+            classes.forEach((classItem) => {
+                const courseId = classItem.course?._id?.toString();
+                if (!courseId) return;
+
+                if (!courseStudentMap.has(courseId)) {
+                    courseStudentMap.set(courseId, new Set());
+                }
+
+                classItem.students?.forEach(student => {
+                    courseStudentMap.get(courseId).add(student._id.toString());
+                });
+            });
+
+            let totalStudents = 0;
+            courseStudentMap.forEach(studentSet => {
+                totalStudents += studentSet.size;
+            });
+
+            resolve({
+                status: "OK",
+                message: "Tổng số học viên từ tất cả khóa học",
+                totalStudents
+            });
+
+        } catch (e) {
+            reject(e);
+        }
+    });
+};
+
+module.exports = { createClass, getAllClasses, getClassById, updateClass, deleteClass, getTotalStudentByCourses };

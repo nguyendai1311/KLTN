@@ -23,8 +23,6 @@ const bulkAttendance = async (req, res) => {
     }
 };
 
-
-
 module.exports = {
     bulkAttendance
 };
