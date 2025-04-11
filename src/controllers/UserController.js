@@ -367,6 +367,16 @@ const logoutUser = async (req, res) => {
         })
     }
 }
+
+const getTotalTeachers = async (req, res) => {
+    try {
+      const total = await UserService.getTotalTeachers();
+      res.status(200).json({ totalTeachers: total });
+    } catch (error) {
+      res.status(500).json({ message: error.message });
+    }
+  };
+
 module.exports = {
     createUser,
     resendOtp,
@@ -381,5 +391,6 @@ module.exports = {
     refreshToken,
     logoutUser,
     deleteMany,
-    createTeacher
+    createTeacher,
+    getTotalTeachers
 }

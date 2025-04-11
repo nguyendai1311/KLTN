@@ -130,6 +130,45 @@ const getTotalStudentByCourses = async (req, res) => {
     }
 };
 
+const getTotalClasses = async (req, res) => {
+    try {
+      const total = await classService.getTotalClasses();
+      res.status(200).json({ totalClasses: total });
+    } catch (error) {
+      res.status(500).json({ message: error.message });
+    }
+  };
+
+  const getClassesByTeacherId = async (req, res) => {
+    const teacherId = req.params.teacherId;
+    const response = await classService.getClassesByTeacherId(teacherId);
+    if (response.status === "OK") {
+      res.status(200).json(response);
+    } else {
+      res.status(500).json(response);
+    }
+  };
+
+  const getStudentsInClass = async (req, res) => {
+    try {
+        const { classId } = req.params;
+        const response = await classService.getStudentsInClass(classId);
+
+        if (response.status === "OK") {
+            return res.status(200).json(response);
+        } else {
+            return res.status(404).json(response);
+        }
+
+    } catch (error) {
+        return res.status(500).json({
+            status: "ERR",
+            message: "Internal server error",
+            error: error.message
+        });
+    }
+};
+
 
 module.exports = {
     createClass,
@@ -137,5 +176,8 @@ module.exports = {
     getClassById,
     updateClass,
     deleteClass,
-    getTotalStudentByCourses
+    getTotalStudentByCourses,
+    getTotalClasses,
+    getClassesByTeacherId,
+    getStudentsInClass
 };

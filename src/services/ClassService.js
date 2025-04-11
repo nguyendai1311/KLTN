@@ -159,4 +159,68 @@ const getTotalStudentByCourses = () => {
     });
 };
 
-module.exports = { createClass, getAllClasses, getClassById, updateClass, deleteClass, getTotalStudentByCourses };
+const getTotalClasses = async () => {
+    try {
+        const count = await Class.countDocuments();
+        return count;
+    } catch (error) {
+        throw new Error('Không thể đếm lớp học: ' + error.message);
+    }
+};
+
+
+const getClassesByTeacherId = async (teacherId) => {
+  try {
+    const classes = await Class.find({ teacher: teacherId })
+      .populate("course teacher students");
+    return {
+      status: "OK",
+      message: "Lấy danh sách lớp của giảng viên thành công",
+      data: classes
+    };
+  } catch (error) {
+    return {
+      status: "ERR",
+      message: "Lỗi khi lấy lớp học: " + error.message
+    };
+  }
+};
+
+const getStudentsInClass = async (classId) => {
+    try {
+        const foundClass = await Class.findById(classId).populate("students", "-password");
+
+        if (!foundClass) {
+            return {
+                status: "ERR",
+                message: "Class not found"
+            };
+        }
+
+        return {
+            status: "OK",
+            message: "Students retrieved successfully",
+            students: foundClass.students
+        };
+
+    } catch (error) {
+        return {
+            status: "ERR",
+            message: "Server error",
+            error: error.message
+        };
+    }
+};
+
+
+module.exports = {
+    createClass,
+    getAllClasses,
+    getClassById,
+    updateClass,
+    deleteClass,
+    getTotalStudentByCourses,
+    getTotalClasses,
+    getClassesByTeacherId,
+    getStudentsInClass
+}

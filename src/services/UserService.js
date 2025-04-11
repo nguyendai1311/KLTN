@@ -283,6 +283,16 @@ const getDetailsUser = (id) => {
     })
 }
 
+const getTotalTeachers = async () => {
+    try {
+      const count = await User.countDocuments({ isTeacher: true });
+      return count;
+    } catch (error) {
+      throw new Error('Không thể đếm giảng viên: ' + error.message);
+    }
+  };
+  
+
 
 module.exports = {
     createUser,
@@ -296,5 +306,6 @@ module.exports = {
     getAllUser,
     getDetailsUser,
     deleteManyUser,
-    createTeacher
+    createTeacher,
+    getTotalTeachers,
 }
