@@ -35,7 +35,6 @@ const bulkAttendance = async (classroomId, attendances, teacherId) => {
     // Tạo document điểm danh
     const attendanceRecord = {
         classroom: new mongoose.Types.ObjectId(classroomId),
-        course: classroom.course,
         teacher: new mongoose.Types.ObjectId(teacherId),
         date: new Date(),
         attendances: attendances.map(record => ({

@@ -26,7 +26,7 @@ const getTeacherSchedule = async (teacherId) => {
         const classes = await Classroom.find({ teacher: teacherId })
             .populate('course', 'name')
             .populate('students', 'name')
-            .select('name schedule address course students'); // 🕒 📍 Lấy giờ học & địa chỉ
+            .select('name schedule address course students startDate endDate'); // 🕒 📍 Lấy giờ học & địa chỉ
 
         return {
             status: 'OK',

@@ -26,7 +26,7 @@ const createOrder = async (newOrder) => {
             }
 
             // Kiểm tra nếu lớp học không đủ chỗ
-            if (classToUpdate.maxStudent < order.amount) {
+            if (classToUpdate.studentCount < order.amount) {
                 failedOrders.push(`Lớp học ${classToUpdate.name} không đủ chỗ`);
                 continue;
             }
