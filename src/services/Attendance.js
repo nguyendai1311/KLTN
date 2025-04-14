@@ -62,6 +62,55 @@ const bulkAttendance = async (classroomId, attendances, teacherId) => {
 };
 
 
+const updateAttendance = async (attendanceId, updatedAttendances) => {
+    try {
+        const attendance = await Attendance.findById(attendanceId);
+        if (!attendance) {
+            throw new Error("Điểm danh không tồn tại");
+        }
+
+        // Update the attendances
+        attendance.attendances = updatedAttendances.map(record => ({
+            student: new mongoose.Types.ObjectId(record.student),
+            status: record.status
+        }));
+
+        await attendance.save();
+        return attendance;
+    } catch (error) {
+        throw new Error(`Lỗi khi cập nhật điểm danh: ${error.message}`);
+    }
+};
+
+// Delete Attendance
+const deleteAttendance = async (attendanceId) => {
+    try {
+        const attendance = await Attendance.findByIdAndDelete(attendanceId);
+        if (!attendance) {
+            throw new Error("Điểm danh không tồn tại");
+        }
+
+        return { message: "Điểm danh đã được xóa thành công" };
+    } catch (error) {
+        throw new Error(`Lỗi khi xóa điểm danh: ${error.message}`);
+    }
+};
+
+const getAllByIdTeacher = async (teacherId) => {
+    try {
+        const records = await Attendance.find({ teacher: teacherId })
+            .populate("classroom", "name")
+            .populate("attendances.student", "name email");
+
+        return records;
+    } catch (error) {
+        throw new Error(`Lỗi khi lấy danh sách điểm danh theo giáo viên: ${error.message}`);
+    }
+};
+
 module.exports = {
-    bulkAttendance
+    bulkAttendance,
+    updateAttendance,
+    deleteAttendance,
+    getAllByIdTeacher
 };

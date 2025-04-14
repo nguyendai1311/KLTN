@@ -23,6 +23,79 @@ const bulkAttendance = async (req, res) => {
     }
 };
 
+const updateAttendance = async (req, res) => {
+    try {
+        const { attendanceId, attendances } = req.body;
+
+        if (!attendanceId || !attendances) {
+            return res.status(400).json({ message: "Thiếu dữ liệu đầu vào" });
+        }
+
+        const updatedAttendance = await attendanceService.updateAttendance(attendanceId, attendances);
+        return res.status(200).json({
+            message: "Cập nhật điểm danh thành công",
+            data: updatedAttendance
+        });
+
+    } catch (error) {
+        console.error("❌ Lỗi khi cập nhật điểm danh:", error.message);
+        return res.status(500).json({
+            message: "Lỗi server",
+            error: error.message
+        });
+    }
+};
+
+// Delete Attendance
+const deleteAttendance = async (req, res) => {
+    try {
+        const { attendanceId } = req.params;
+
+        if (!attendanceId) {
+            return res.status(400).json({ message: "Thiếu dữ liệu đầu vào" });
+        }
+
+        const result = await attendanceService.deleteAttendance(attendanceId);
+        return res.status(200).json({
+            message: result.message
+        });
+
+    } catch (error) {
+        console.error("❌ Lỗi khi xóa điểm danh:", error.message);
+        return res.status(500).json({
+            message: "Lỗi server",
+            error: error.message
+        });
+    }
+};
+
+// Lấy tất cả điểm danh theo ID giáo viên
+const getAllByIdTeacher = async (req, res) => {
+    try {
+        const { teacherId } = req.params;
+
+        if (!teacherId) {
+            return res.status(400).json({ message: "Thiếu teacherId" });
+        }
+
+        const records = await attendanceService.getAllByIdTeacher(teacherId);
+        return res.status(200).json({
+            message: "Lấy danh sách điểm danh thành công",
+            data: records
+        });
+
+    } catch (error) {
+        console.error("❌ Lỗi khi lấy danh sách điểm danh:", error.message);
+        return res.status(500).json({
+            message: "Lỗi server",
+            error: error.message
+        });
+    }
+};
+
 module.exports = {
-    bulkAttendance
+    bulkAttendance,
+    updateAttendance,
+    deleteAttendance,
+    getAllByIdTeacher
 };

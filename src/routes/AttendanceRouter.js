@@ -4,4 +4,8 @@ const Attendance = require("../controllers/Attendance");
 const { authTeacherMiddleWare } = require("../middleware/authMiddleware");
 
 router.post("/bulk",authTeacherMiddleWare, Attendance.bulkAttendance);
+router.put("/update",authTeacherMiddleWare, Attendance.updateAttendance);
+router.delete("/delete/:attendanceId",authTeacherMiddleWare, Attendance.deleteAttendance);
+router.get("/get-all/:teacherId",authTeacherMiddleWare, Attendance.getAllByIdTeacher);
+
 module.exports = router;
