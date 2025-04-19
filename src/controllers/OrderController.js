@@ -2,21 +2,36 @@ const OrderService = require('../services/OrderService')
 
 const createOrder = async (req, res) => {
     try {
-        const { itemsPrice, totalPrice, fullName, address, phone } = req.body
-        if (!itemsPrice || !totalPrice || !fullName || !address || !phone) {
+        const { totalPrice, items, ...rest } = req.body;
+
+        if (!totalPrice || !items || items.length === 0) {
             return res.status(200).json({
                 status: 'ERR',
                 message: 'The input is required'
-            })
+            });
         }
-        const response = await OrderService.createOrder(req.body)
-        return res.status(200).json(response)
+
+        const normalizedItems = items.map(item => ({
+            ...item,
+            class: item.classId  // đổi tên cho service xử lý
+        }));
+        
+        const response = await OrderService.createOrder({
+            ...rest,
+            totalPrice,
+            user: req.body.userId,
+            orderItems: normalizedItems,
+        });
+
+        return res.status(200).json(response);
     } catch (e) {
-        return res.status(404).json({
-            message: e
-        })
+        return res.status(500).json({
+            status: 'ERR',
+            message: e.message || 'Internal server error'
+        });
     }
-}
+};
+
 
 const getAllOrderDetails = async (req, res) => {
     try {

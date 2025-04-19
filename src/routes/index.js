@@ -8,7 +8,7 @@ const ReviewRouter = require('./ReviewRouter')
 const ExamRouter = require('./ExamRouter')
 const ScoreRouter = require('./ScoreRouter')
 const BlogRouter = require('./BlogRouter')
-const VnpayRouter = require('./VnPayRouter')
+const PaymentRouter = require('./PaymentRouter')
 
 const routes = (app) => {
     app.use('/api/user', UserRouter)
@@ -21,7 +21,7 @@ const routes = (app) => {
     app.use('/api/exam', ExamRouter)
     app.use('/api/score', ScoreRouter)
     app.use('/api/blog', BlogRouter)
-    app.use('/api/payment', VnpayRouter);
+    app.use('/api/payment', PaymentRouter)
 
 }
 
