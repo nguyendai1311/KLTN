@@ -51,6 +51,30 @@ const getExamsByTeacherId = async (req, res) => {
   }
 };
 
+const getExamsByClassId = async (req, res) => {
+  try {
+      const classId = req.params.id;
+
+      if (!classId) {
+          return res.status(400).json({
+              status: "ERROR",
+              message: "Thiếu ID lớp học"
+          });
+      }
+
+      const result = await examService.getExamsByClassId(classId);
+      return res.status(200).json(result);
+
+  } catch (error) {
+      console.error("Lỗi khi lấy bài thi theo lớp học:", error);
+      return res.status(500).json({
+          status: "ERROR",
+          message: "Có lỗi xảy ra ở server"
+      });
+  }
+};
+
+
 const updateExam = async (req, res) => {
   try {
     const updated = await examService.updateExam(req.params.id, req.body);
@@ -77,5 +101,6 @@ module.exports = {
   getExamById,
   updateExam,
   deleteExam,
-  getExamsByTeacherId
+  getExamsByTeacherId,
+  getExamsByClassId
 }

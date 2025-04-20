@@ -2,32 +2,40 @@ const OrderService = require('../services/OrderService')
 
 const createOrder = async (req, res) => {
     try {
-        const { totalPrice, items, ...rest } = req.body;
+        console.log('👉 Request Body:', req.body);
 
-        if (!totalPrice || !items || items.length === 0) {
-            return res.status(200).json({
+        const { totalPrice, items, userId, ...rest } = req.body;
+
+        if (!totalPrice || !items || !Array.isArray(items) || items.length === 0) {
+            return res.status(400).json({
                 status: 'ERR',
-                message: 'The input is required'
+                message: 'Danh sách sản phẩm không hợp lệ hoặc đang trống.'
             });
         }
 
         const normalizedItems = items.map(item => ({
             ...item,
-            class: item.classId  // đổi tên cho service xử lý
+            class: item.classId
         }));
-        
-        const response = await OrderService.createOrder({
+
+        const newOrderData = {
             ...rest,
             totalPrice,
-            user: req.body.userId,
+            user: userId,
             orderItems: normalizedItems,
-        });
+        };
+
+        console.log('✅ Normalized Order:', newOrderData);
+
+        const response = await OrderService.createOrder(newOrderData);
 
         return res.status(200).json(response);
+
     } catch (e) {
+        console.error('❌ Error in createOrder:', e);
         return res.status(500).json({
             status: 'ERR',
-            message: e.message || 'Internal server error'
+            message: e.message || 'Lỗi server nội bộ'
         });
     }
 };

@@ -149,6 +149,17 @@ const getTotalClasses = async (req, res) => {
     }
   };
 
+  const getClassesByStudentId = async (req, res) => {
+    const studentId = req.params.studentId;
+    const response = await classService.getClassesByStudentId(studentId);
+    if (response.status === "OK") {
+      res.status(200).json(response);
+    } else {
+      res.status(500).json(response);
+    }
+  };
+  
+
   const getStudentsInClass = async (req, res) => {
     try {
         const { classId } = req.params;
@@ -179,5 +190,6 @@ module.exports = {
     getTotalStudentByCourses,
     getTotalClasses,
     getClassesByTeacherId,
-    getStudentsInClass
+    getStudentsInClass,
+    getClassesByStudentId 
 };

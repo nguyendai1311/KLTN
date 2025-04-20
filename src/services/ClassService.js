@@ -1,3 +1,4 @@
+const { default: mongoose } = require("mongoose");
 const Class = require("../models/ClassModel");
 
 const createClass = async (newClass) => {
@@ -60,6 +61,26 @@ const getClassById = (classId) => {
         }
     });
 };
+
+const getClassesByStudentId = async (studentId) => {
+    try {
+        const objectId = new mongoose.Types.ObjectId(studentId);
+
+        const classes = await Class.find({ students: objectId }).populate("course teacher students");
+
+        return {
+            status: "OK",
+            message: "Lấy danh sách lớp của học viên thành công",
+            data: classes,
+        };
+    } catch (error) {
+        return {
+            status: "ERR",
+            message: "Lỗi khi lấy lớp học: " + error.message,
+        };
+    }
+};
+
 
 // Cập nhật lớp học theo ID
 const updateClass = (classId, updateData) => {
@@ -170,20 +191,20 @@ const getTotalClasses = async () => {
 
 
 const getClassesByTeacherId = async (teacherId) => {
-  try {
-    const classes = await Class.find({ teacher: teacherId })
-      .populate("course teacher students");
-    return {
-      status: "OK",
-      message: "Lấy danh sách lớp của giảng viên thành công",
-      data: classes
-    };
-  } catch (error) {
-    return {
-      status: "ERR",
-      message: "Lỗi khi lấy lớp học: " + error.message
-    };
-  }
+    try {
+        const classes = await Class.find({ teacher: teacherId })
+            .populate("course teacher students");
+        return {
+            status: "OK",
+            message: "Lấy danh sách lớp của giảng viên thành công",
+            data: classes
+        };
+    } catch (error) {
+        return {
+            status: "ERR",
+            message: "Lỗi khi lấy lớp học: " + error.message
+        };
+    }
 };
 
 const getStudentsInClass = async (classId) => {
@@ -222,5 +243,6 @@ module.exports = {
     getTotalStudentByCourses,
     getTotalClasses,
     getClassesByTeacherId,
-    getStudentsInClass
+    getStudentsInClass,
+    getClassesByStudentId
 }

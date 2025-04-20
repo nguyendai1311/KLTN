@@ -78,6 +78,32 @@ const getExamsByTeacherId = (teacherId) => {
 };
 
 
+const getExamsByClassId = (classId) => {
+    return new Promise(async (resolve, reject) => {
+        try {
+            const exams = await Exam.find({ class: classId })
+                .populate("class")
+                .populate("teacher");
+
+            if (!exams || exams.length === 0) {
+                resolve({
+                    status: "NOT_FOUND",
+                    message: "Không tìm thấy bài kiểm tra nào cho lớp học này"
+                });
+            } else {
+                resolve({
+                    status: "OK",
+                    message: "Lấy danh sách bài kiểm tra thành công",
+                    data: exams
+                });
+            }
+        } catch (error) {
+            reject(error);
+        }
+    });
+};
+
+
 const updateExam = (id, updateData) => {
     return new Promise(async (resolve, reject) => {
         try {
@@ -127,5 +153,6 @@ module.exports =  {
     getExamById,
     updateExam,
     deleteExam,
-    getExamsByTeacherId
+    getExamsByTeacherId,
+    getExamsByClassId
 };

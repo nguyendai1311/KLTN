@@ -9,6 +9,7 @@ router.get('/get-exam-by-id/:id', authTeacherMiddleWare, ExamController.getExamB
 router.get('/get-exam-by-teacherid/:id', authTeacherMiddleWare, ExamController.getExamsByTeacherId)
 router.put('/update-exam/:id', authTeacherMiddleWare, ExamController.updateExam)
 router.delete('/delete/:id', authTeacherMiddleWare, ExamController.deleteExam)
+router.get('/get-exam-by-classid/:id', ExamController.getExamsByClassId)
 
 module.exports = router
 
