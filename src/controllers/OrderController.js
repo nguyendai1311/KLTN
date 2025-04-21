@@ -1,45 +1,65 @@
 const OrderService = require('../services/OrderService')
 
 const createOrder = async (req, res) => {
-    try {
-        console.log('👉 Request Body:', req.body);
+  try {
+    console.log('👉 Request Body:', req.body);
 
-        const { totalPrice, items, userId, ...rest } = req.body;
+    const { totalPrice, items, userId, email, ...rest } = req.body;
 
-        if (!totalPrice || !items || !Array.isArray(items) || items.length === 0) {
-            return res.status(400).json({
-                status: 'ERR',
-                message: 'Danh sách sản phẩm không hợp lệ hoặc đang trống.'
-            });
-        }
-
-        const normalizedItems = items.map(item => ({
-            ...item,
-            class: item.classId
-        }));
-
-        const newOrderData = {
-            ...rest,
-            totalPrice,
-            user: userId,
-            orderItems: normalizedItems,
-        };
-
-        console.log('✅ Normalized Order:', newOrderData);
-
-        const response = await OrderService.createOrder(newOrderData);
-
-        return res.status(200).json(response);
-
-    } catch (e) {
-        console.error('❌ Error in createOrder:', e);
-        return res.status(500).json({
-            status: 'ERR',
-            message: e.message || 'Lỗi server nội bộ'
-        });
+    if (!totalPrice || !items || !Array.isArray(items) || items.length === 0) {
+      return res.status(400).json({
+        status: 'ERR',
+        message: 'Danh sách sản phẩm không hợp lệ hoặc đang trống.'
+      });
     }
+
+    // Validate mỗi item phải có đầy đủ thông tin
+    for (const item of items) {
+      if (!item.classId || !item.name || !item.price || !item.amount) {
+        return res.status(400).json({
+          status: 'ERR',
+          message: 'Mỗi sản phẩm phải có classId, name, price và amount.'
+        });
+      }
+    }
+
+    const normalizedItems = items.map(item => ({
+      classId: item.classId,
+      name: item.name,
+      price: item.price,
+      amount: item.amount,
+      image: item.image || '',
+      schedule: item.schedule || []
+    }));
+
+    const newOrderData = {
+      ...rest,
+      email,
+      totalPrice,
+      user: userId,
+      orderItems: normalizedItems,
+    };
+
+    console.log('✅ Normalized Order:', newOrderData);
+
+    const response = await OrderService.createOrder(newOrderData);
+
+    return res.status(200).json(response);
+
+  } catch (e) {
+    console.error('❌ Error in createOrder:', e);
+    return res.status(500).json({
+      status: 'ERR',
+      message: e.message || 'Lỗi server nội bộ'
+    });
+  }
 };
 
+module.exports = {
+  createOrder,
+};
+
+  
 
 const getAllOrderDetails = async (req, res) => {
     try {

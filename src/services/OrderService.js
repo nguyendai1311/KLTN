@@ -1,152 +1,40 @@
-const Order = require('../models/OrderProduct')
-const Course = require('../models/CourseModel')
+const Order = require('../models/OrderProduct');
 const Class = require('../models/ClassModel');
-const EmailService = require('./EmailService')
+const EmailService = require('./EmailService');
 const mongoose = require('mongoose');
-
-
-// const createOrder = async (newOrder) => {
-//     try {
-//         const { orderItems, itemsPrice, totalPrice, user, isPaid, paidAt, email } = newOrder;
-//         const failedOrders = [];
-
-//         // Kiểm tra học viên đã đăng ký khóa học hay chưa và kiểm tra trùng lịch
-//         for (const order of orderItems) {
-//             const classToUpdate = await Class.findOne({ _id: order.class });
-
-//             if (!classToUpdate) {
-//                 failedOrders.push(order.class);
-//                 continue;
-//             }
-
-//             // Kiểm tra nếu học viên đã đăng ký khóa học
-//             if (classToUpdate.students.includes(user)) {
-//                 failedOrders.push(`Học viên đã đăng ký lớp học ${classToUpdate.name} trước đó`);
-//                 continue;
-//             }
-
-//             // Kiểm tra nếu lớp học không đủ chỗ
-//             if (classToUpdate.studentCount < order.amount) {
-//                 failedOrders.push(`Lớp học ${classToUpdate.name} không đủ chỗ`);
-//                 continue;
-//             }
-
-//             // Kiểm tra trùng lịch học với các lớp đã đăng ký của học viên
-//             const overlappingClass = await Class.findOne({
-//                 students: user,
-//                 schedule: {
-//                     $elemMatch: {
-//                         day: { $in: classToUpdate.schedule.map(schedule => schedule.day) },
-//                         $or: classToUpdate.schedule.map(schedule => ({
-//                             startTime: { $lte: schedule.endTime },
-//                             endTime: { $gte: schedule.startTime }
-//                         }))
-//                     }
-//                 },
-//                 _id: { $ne: classToUpdate._id } // Không xét chính lớp đang cập nhật
-//             });
-
-//             if (overlappingClass) {
-//                 failedOrders.push(`Lịch học của lớp ${classToUpdate.name} trùng với lớp đã đăng ký: ${overlappingClass.name}`);
-//                 continue;
-//             }
-//             console.log("order.class:", order.class);
-//             // Cập nhật lớp học nếu tất cả các kiểm tra đều thành công
-//             const updatedClass = await Class.findOneAndUpdate(
-//                 { _id: new mongoose.Types.ObjectId(order.class) },  // 👈 Ép kiểu ObjectId ở đây
-//                 {
-//                     $inc: { maxStudent: -1 },
-//                     $addToSet: { students: user }
-//                 },
-//                 { new: true }
-//             );
-
-//             if (!updatedClass) {
-//                 failedOrders.push(order.class); // Lớp học không được cập nhật
-//             } else {
-//                 console.log(`✅ Học sinh ${user} đã được thêm vào lớp ${updatedClass.name}`);
-//             }
-//         }
-
-//         // Nếu có lớp không đủ chỗ, không tồn tại hoặc bị lỗi
-//         if (failedOrders.length) {
-//             return {
-//                 status: 'ERR',
-//                 message: `Có lỗi với các lớp học: ${failedOrders.join(', ')}`
-//             };
-//         }
-
-//         // Tạo đơn hàng mới
-//         const createdOrder = await Order.create({
-//             orderItems,
-//             itemsPrice,
-//             totalPrice,
-//             user,
-//             isPaid,
-//             paidAt
-//         });
-
-//         if (!createdOrder) {
-//             return {
-//                 status: 'ERR',
-//                 message: 'Không thể tạo đơn hàng'
-//             };
-//         }
-
-//         // Gửi email xác nhận đơn hàng nếu có email
-//         if (email) {
-//             await EmailService.sendEmailCreateOrder(email, orderItems);
-//         }
-
-//         return {
-//             status: 'OK',
-//             message: 'Đơn hàng được tạo thành công',
-//             data: createdOrder
-//         };
-//     } catch (error) {
-//         console.error("❌ Lỗi khi tạo đơn hàng:", error);
-//         return {
-//             status: 'ERR',
-//             message: 'Lỗi máy chủ: ' + error.message
-//         };
-//     }
-// };
 
 const createOrder = async (newOrder) => {
   try {
     const { orderItems, totalPrice, user, isPaid, paidAt, email } = newOrder;
-
     const failedOrders = [];
 
     if (!Array.isArray(orderItems) || orderItems.length === 0) {
-      console.log('👉 newOrder:', newOrder);
-      console.log('👉 orderItems:', orderItems);
       return {
         status: 'ERR',
-        message: 'Danh sách sản phẩm không hợp lệ hoặc đang trống.'
+        message: 'Danh sách sản phẩm không hợp lệ hoặc đang trống.',
       };
     }
 
-    console.log('👉 newOrder:', newOrder);
-    console.log('👉 orderItems:', orderItems);
-
-    const itemsPrice = orderItems.reduce((total, item) => total + item.price * item.amount, 0);
+    const itemsPrice = orderItems.reduce(
+      (total, item) => total + item.price * item.amount,
+      0
+    );
 
     for (const order of orderItems) {
       const classToUpdate = await Class.findOne({ _id: order.classId });
 
       if (!classToUpdate) {
-        failedOrders.push(order.classId);
+        failedOrders.push(`Không tìm thấy lớp học ID: ${order.classId}`);
         continue;
       }
 
       if (classToUpdate.students.includes(user)) {
-        failedOrders.push(`Học viên đã đăng ký lớp học ${classToUpdate.name} trước đó`);
+        failedOrders.push(`Học viên đã đăng ký lớp ${classToUpdate.name} trước đó`);
         continue;
       }
 
       if (classToUpdate.studentCount < order.amount) {
-        failedOrders.push(`Lớp học ${classToUpdate.name} không đủ chỗ`);
+        failedOrders.push(`Lớp ${classToUpdate.name} không đủ chỗ trống`);
         continue;
       }
 
@@ -165,7 +53,7 @@ const createOrder = async (newOrder) => {
       });
 
       if (overlappingClass) {
-        failedOrders.push(`Lịch học của lớp ${classToUpdate.name} trùng với lớp đã đăng ký: ${overlappingClass.name}`);
+        failedOrders.push(`Lớp ${classToUpdate.name} bị trùng lịch với lớp ${overlappingClass.name}`);
         continue;
       }
 
@@ -179,7 +67,7 @@ const createOrder = async (newOrder) => {
       );
 
       if (!updatedClass) {
-        failedOrders.push(order.classId);
+        failedOrders.push(`Cập nhật thất bại cho lớp ${order.classId}`);
       } else {
         console.log(`✅ Học sinh ${user} đã được thêm vào lớp ${updatedClass.name}`);
       }
@@ -188,71 +76,82 @@ const createOrder = async (newOrder) => {
     if (failedOrders.length) {
       return {
         status: 'ERR',
-        message: `Có lỗi với các lớp học: ${failedOrders.join(', ')}`
+        message: `Có lỗi với các lớp học: ${failedOrders.join(', ')}`,
       };
     }
 
+    const mappedOrderItems = orderItems.map((item) => ({
+      class: item.classId,
+      name: item.name,
+      price: item.price,
+      amount: item.amount,
+      image: item.image,
+      schedule: item.schedule || [],
+    }));
+
     const createdOrder = await Order.create({
-      orderItems,
+      orderItems: mappedOrderItems,
       itemsPrice,
       totalPrice,
       user,
       isPaid,
-      paidAt
+      paidAt,
+      email,
     });
 
     if (!createdOrder) {
       return {
         status: 'ERR',
-        message: 'Không thể tạo đơn hàng'
+        message: 'Không thể tạo đơn hàng',
       };
     }
 
     if (email) {
-      await EmailService.sendEmailCreateOrder(email, orderItems);
+      await EmailService.sendEmailCreateOrder(email, mappedOrderItems);
     }
 
     return {
       status: 'OK',
       message: 'Đơn hàng được tạo thành công',
-      data: createdOrder
+      data: createdOrder,
     };
 
   } catch (error) {
     console.error("❌ Lỗi khi tạo đơn hàng:", error);
     return {
       status: 'ERR',
-      message: 'Lỗi máy chủ: ' + error.message
+      message: 'Lỗi máy chủ: ' + error.message,
     };
   }
 };
 
-
-
-
 const getAllOrderDetails = (id) => {
   return new Promise(async (resolve, reject) => {
     try {
-      const order = await Order.find({
-        user: id
-      }).sort({ createdAt: -1, updatedAt: -1 })
-      if (order === null) {
+      const order = await Order.find({ user: id })
+        .sort({ createdAt: -1, updatedAt: -1 })
+        .populate({
+          path: "orderItems.class", 
+          select: "schedule",       
+        });
+
+      if (!order) {
         resolve({
           status: 'ERR',
           message: 'The order is not defined'
-        })
+        });
       }
+
       resolve({
         status: 'OK',
-        message: 'SUCESSS',
+        message: 'SUCCESS',
         data: order
-      })
+      });
     } catch (e) {
-      // console.log('e', e)
-      reject(e)
+      reject(e);
     }
-  })
-}
+  });
+};
 
 const getOrderDetails = (id) => {
   return new Promise(async (resolve, reject) => {
