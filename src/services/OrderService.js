@@ -5,9 +5,9 @@ const mongoose = require('mongoose');
 
 const createOrder = async (newOrder) => {
   try {
-    const { orderItems, totalPrice, user, isPaid, paidAt, email } = newOrder;
+    const { orderItems, totalPrice, studentName,user, isPaid, paidAt, email } = newOrder;
     const failedOrders = [];
-
+    
     if (!Array.isArray(orderItems) || orderItems.length === 0) {
       return {
         status: 'ERR',
@@ -94,6 +94,7 @@ const createOrder = async (newOrder) => {
       itemsPrice,
       totalPrice,
       user,
+      studentName,
       isPaid,
       paidAt,
       email,
@@ -124,6 +125,7 @@ const createOrder = async (newOrder) => {
     };
   }
 };
+
 
 const getAllOrderDetails = (id) => {
   return new Promise(async (resolve, reject) => {
@@ -245,10 +247,31 @@ const getAllOrder = () => {
   })
 }
 
+const calculateTotalRevenue = async () => {
+  const result = await Order.aggregate([
+      {
+          $group: {
+              _id: null,
+              totalRevenue: { $sum: "$totalPrice" }
+          }
+      }
+  ]);
+
+  const totalRevenue = result.length > 0 ? result[0].totalRevenue : 0;
+  return totalRevenue;
+};
+
+const countTotalOrders = async () => {
+  const totalOrders = await Order.countDocuments({});
+  return totalOrders;
+};
+
 module.exports = {
   createOrder,
   getAllOrderDetails,
   getOrderDetails,
   cancelOrderDetails,
-  getAllOrder
+  getAllOrder,
+  calculateTotalRevenue,
+  countTotalOrders
 }

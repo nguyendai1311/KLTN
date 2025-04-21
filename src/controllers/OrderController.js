@@ -1,65 +1,58 @@
 const OrderService = require('../services/OrderService')
 
 const createOrder = async (req, res) => {
-  try {
-    console.log('👉 Request Body:', req.body);
-
-    const { totalPrice, items, userId, email, ...rest } = req.body;
-
-    if (!totalPrice || !items || !Array.isArray(items) || items.length === 0) {
-      return res.status(400).json({
-        status: 'ERR',
-        message: 'Danh sách sản phẩm không hợp lệ hoặc đang trống.'
-      });
-    }
-
-    // Validate mỗi item phải có đầy đủ thông tin
-    for (const item of items) {
-      if (!item.classId || !item.name || !item.price || !item.amount) {
-        return res.status(400).json({
-          status: 'ERR',
-          message: 'Mỗi sản phẩm phải có classId, name, price và amount.'
-        });
-      }
-    }
-
-    const normalizedItems = items.map(item => ({
-      classId: item.classId,
-      name: item.name,
-      price: item.price,
-      amount: item.amount,
-      image: item.image || '',
-      schedule: item.schedule || []
-    }));
-
-    const newOrderData = {
-      ...rest,
-      email,
-      totalPrice,
-      user: userId,
-      orderItems: normalizedItems,
-    };
-
-    console.log('✅ Normalized Order:', newOrderData);
-
-    const response = await OrderService.createOrder(newOrderData);
-
-    return res.status(200).json(response);
-
-  } catch (e) {
-    console.error('❌ Error in createOrder:', e);
-    return res.status(500).json({
-      status: 'ERR',
-      message: e.message || 'Lỗi server nội bộ'
-    });
-  }
-};
-
-module.exports = {
-  createOrder,
-};
+    try {
+  
+        const { totalPrice, items, userId, email, name: studentName, ...rest } = req.body;
 
   
+      if (!totalPrice || !items || !Array.isArray(items) || items.length === 0) {
+        return res.status(400).json({
+          status: 'ERR',
+          message: 'Danh sách sản phẩm không hợp lệ hoặc đang trống.'
+        });
+      }
+  
+      for (const item of items) {
+        if (!item.classId || !item.name || !item.price || !item.amount) {
+          return res.status(400).json({
+            status: 'ERR',
+            message: 'Mỗi sản phẩm phải có classId, name, price và amount.'
+          });
+        }
+      }
+  
+      const normalizedItems = items.map(item => ({
+        classId: item.classId,
+        name: item.name,
+        price: item.price,
+        amount: item.amount,
+        image: item.image || '',
+        schedule: item.schedule || []
+      }));
+  
+      const newOrderData = {
+        ...rest,
+        studentName,
+        email,
+        totalPrice,
+        user: userId,
+        orderItems: normalizedItems,
+      };
+  
+  
+      const response = await OrderService.createOrder(newOrderData);
+  
+      return res.status(200).json(response);
+  
+    } catch (e) {
+      console.error('❌ Error in createOrder:', e);
+      return res.status(500).json({
+        status: 'ERR',
+        message: e.message || 'Lỗi server nội bộ'
+      });
+    }
+  };
 
 const getAllOrderDetails = async (req, res) => {
     try {
@@ -132,11 +125,32 @@ const getAllOrder = async (req, res) => {
     }
 };
 
+const getTotalRevenue = async (req, res) => {
+    try {
+        const totalRevenue = await OrderService.calculateTotalRevenue();
+        res.status(200).json({ totalRevenue });
+    } catch (error) {
+        console.error("Error calculating total revenue:", error);
+        res.status(500).json({ message: "Internal server error" });
+    }
+};
+
+const getTotalOrders = async (req, res) => {
+    try {
+        const totalOrders = await OrderService.countTotalOrders();
+        res.status(200).json({ totalOrders });
+    } catch (error) {
+        console.error("Error counting total orders:", error);
+        res.status(500).json({ message: "Internal server error" });
+    }
+};
 
 module.exports = {
     createOrder,
     getAllOrderDetails,
     getDetailsOrder,
     cancelOrderDetails,
-    getAllOrder
+    getAllOrder,
+    getTotalRevenue,
+    getTotalOrders
 }
