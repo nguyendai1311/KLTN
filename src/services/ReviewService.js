@@ -1,47 +1,86 @@
 const Review = require("../models/ReviewModel");
 const Class = require("../models/ClassModel");
+const Order = require("../models/OrderProduct");
 
-const addReview = async (user, classId, comment) => {
-    if (!user || !user._id) {
-        throw new Error("Thông tin người dùng không hợp lệ!");
+const addReview = async (userId, courseId, comment, rating) => {
+    if (!comment || !rating) throw new Error('Vui lòng nhập đầy đủ thông tin!');
+
+    const existingReview = await Review.findOne({ user: userId, course: courseId });
+    if (existingReview) throw new Error('Bạn đã đánh giá khóa học này rồi!');
+
+    const orders = await Order.find({ user:userId });
+    let hasCourse = false;
+    
+    for (const order of orders) {
+        for (const item of order.orderItems) {
+            const classData = await Class.findById(item.class);
+            if (classData?.course?.toString() === courseId.toString()) {
+                hasCourse = true;
+                break;
+            }
+        }
+        if (hasCourse) break;
     }
 
-    const classData = await Class.findById(classId);
-    if (!classData) {
-        throw new Error("Không tìm thấy lớp học!");
-    }
+    if (!hasCourse) throw new Error('Bạn chưa học khóa học này!');
 
-    const studentIds = classData.students.map(id => id.toString());
-    if (!studentIds.includes(user._id.toString())) {
-        throw new Error("Bạn chưa đăng ký lớp học này!");
-    }
-
-    const review = new Review({
-        user: user._id,
-        class: classId,
-        comment
+    const review = await Review.create({
+        user: userId,
+        course: courseId,
+        comment,
+        rating,
     });
 
-    await review.save();
-    await Class.findByIdAndUpdate(classId, { $push: { reviews: review._id } });
-    return review;
+    const populatedReview = await Review.findById(review._id).populate('user', 'name avatar');
+
+    return populatedReview;
 };
 
 
-const getClassReviews = async (classId) => {
-    return await Review.find({ class: classId }).populate("user", "name");
+
+const getAllReviews = async (courseId) => {
+    const reviews = await Review.find({ course: courseId })
+        .sort({ createdAt: -1 }) 
+        .populate('user', 'name avatar'); // lấy name + avatar từ bảng User
+    return reviews;
 };
 
-const deleteReview = async (user, reviewId) => {
-    const review = await Review.findById(reviewId);
-    if (!review) throw new Error("Không tìm thấy đánh giá!");
-
-    if (review.user.toString() !== user._id.toString()) {
-        throw new Error("Bạn không có quyền xóa đánh giá này!");
-    }
-
-    await review.deleteOne();
-    return { message: "Đã xóa đánh giá!" };
+const updateReview = (reviewId, ReviewData) => {
+    return new Promise(async (resolve, reject) => {
+        try {
+            const updatereview = await Review.findByIdAndUpdate(reviewId, ReviewData, { new: true });
+            
+            if (!updatereview) {
+                reject({ message: "review không tồn tại để cập nhật" });
+            }
+            resolve({
+                status: "OK",
+                message: "Cập nhật review thành công",
+                data: updatereview
+            });
+        } catch (error) {
+            reject(error);
+        }
+    });
 };
 
-module.exports = { addReview, getClassReviews, deleteReview };
+
+const deleteReview = (reviewId) => {
+    return new Promise(async (resolve, reject) => {
+        try {
+            const review = await Review.findByIdAndDelete(reviewId);
+            if (!review) {
+                return resolve({ status: "ERR", message: "Không tìm thấy review để xóa" });
+            }
+            resolve({
+                status: "OK",
+                message: "Xóa  review thành công",
+                data: review
+            });
+        } catch (e) {
+            reject(e);
+        }
+    });
+};
+
+module.exports = { addReview,getAllReviews,deleteReview,updateReview };
