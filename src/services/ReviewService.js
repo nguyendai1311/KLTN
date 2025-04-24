@@ -31,18 +31,27 @@ const addReview = async (userId, courseId, comment, rating) => {
         rating,
     });
 
-    const populatedReview = await Review.findById(review._id).populate('user', 'name avatar');
+    const populatedReview = await Review.findById(review._id)
+  .populate('user', 'name avatar')
+  .populate('course', 'name');
 
     return populatedReview;
 };
 
 
 
-const getAllReviews = async (courseId) => {
+const getAllReviewsByCourseId = async (courseId) => {
     const reviews = await Review.find({ course: courseId })
         .sort({ createdAt: -1 }) 
         .populate('user', 'name avatar'); // lấy name + avatar từ bảng User
     return reviews;
+};
+
+const getAllReviews = async () => {
+    return await Review.find()
+        .populate("user", "name email")      
+        .populate("course", "name")        
+        .sort({ createdAt: -1 });            
 };
 
 const updateReview = (reviewId, ReviewData) => {
@@ -83,4 +92,4 @@ const deleteReview = (reviewId) => {
     });
 };
 
-module.exports = { addReview,getAllReviews,deleteReview,updateReview };
+module.exports = { addReview,getAllReviews,deleteReview,updateReview,getAllReviewsByCourseId };

@@ -13,10 +13,10 @@ const createReview = async (req, res) => {
 
 
 
-const getAllReviews = async (req, res) => {
+const getAllReviewsByCourseId = async (req, res) => {
     try {
         const courseId = req.params.courseId;
-        const reviews = await reviewService.getAllReviews(courseId);
+        const reviews = await reviewService.getAllReviewsByCourseId(courseId);
         res.json(reviews);
     } catch (error) {
         res.status(400).json({ message: error.message });
@@ -34,6 +34,16 @@ const updateReview = async (req, res) => {
     }
 };
 
+const getAllReviews = async (req, res) => {
+    try {
+        const reviews = await reviewService.getAllReviews();
+        res.status(200).json(reviews);
+    } catch (error) {
+        console.error("Error getting reviews:", error);
+        res.status(500).json({ message: "Server error" });
+    }
+};
+
 const deleteReview = async (req, res) => {
     try {
         const { reviewId } = req.params;
@@ -46,4 +56,4 @@ const deleteReview = async (req, res) => {
 
 
 
-module.exports = { createReview, deleteReview, getAllReviews, updateReview };
+module.exports = { createReview, deleteReview, getAllReviews, updateReview,getAllReviewsByCourseId };
