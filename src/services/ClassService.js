@@ -1,18 +1,53 @@
 const { default: mongoose } = require("mongoose");
 const Class = require("../models/ClassModel");
+const Course = require("../models/CourseModel");
+
+const isTimeOverlap = (start1, end1, start2, end2) => {
+    return start1 < end2 && start2 < end1;
+};
 
 const createClass = async (newClass) => {
-    const { name } = newClass;
-    const checkClass = await Class.findOne({ name });
-    if (checkClass) {
+    const { name, course, schedule, address } = newClass;
+
+    // Kiểm tra tên lớp trùng ở khóa khác
+    const existingClass = await Class.findOne({ name });
+    if (existingClass && existingClass.course.toString() !== course) {
         return {
             status: 'ERR',
-            message: 'The name of class already exists'
+            message: 'Tên lớp đã tồn tại'
         };
     }
 
+    // Lấy tất cả lớp để kiểm tra trùng giờ và phòng
+    const allClasses = await Class.find();
+
+    for (const cls of allClasses) {
+        for (const existingSlot of cls.schedule) {
+            for (const newSlot of schedule) {
+                const isSameDay = existingSlot.day === newSlot.day;
+                const isTimeClash = isTimeOverlap(newSlot.startTime, newSlot.endTime, existingSlot.startTime, existingSlot.endTime);
+                const isSameRoom = cls.address === address;
+
+                if (isSameDay && isTimeClash && isSameRoom) {
+                    return {
+                        status: 'ERR',
+                        message: `Phòng học "${address}" đã có lớp "${cls.name}" vào ${existingSlot.day} (${existingSlot.startTime} - ${existingSlot.endTime})`
+                    };
+                }
+            }
+        }
+    }
+
     try {
-        const createdClass = await Class.create(newClass); // Using newClass directly
+        const createdClass = await Class.create(newClass);
+
+        // Gắn vào khóa học
+        await Course.findByIdAndUpdate(
+            course,
+            { $push: { classes: createdClass._id } },
+            { new: true }
+        );
+
         return {
             status: "OK",
             message: "Tạo lớp học thành công",
@@ -21,10 +56,11 @@ const createClass = async (newClass) => {
     } catch (e) {
         return {
             status: 'ERR',
-            message: e.message || 'An error occurred while creating the class'
+            message: e.message || 'Đã xảy ra lỗi khi tạo lớp học'
         };
     }
 };
+
 
 
 //  Lấy danh sách tất cả lớp học

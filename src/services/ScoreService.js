@@ -2,6 +2,13 @@ const Score = require('../models/ScoreModel');
 
 const createScore = async (scoreData) => {
     try {
+        // Check if the score table for the specific exam already exists
+        const existingScore = await Score.findOne({ examName: scoreData.examName  });
+        if (existingScore) {
+            throw new Error("Bảng điểm cho bài thi này đã tồn tại!");
+        }
+
+        // If no existing score table, create a new one
         const newScore = await Score.create(scoreData);
         return {
             status: "OK",
@@ -12,6 +19,7 @@ const createScore = async (scoreData) => {
         throw error;
     }
 };
+
 
 const getAllScores = async () => {
     try {

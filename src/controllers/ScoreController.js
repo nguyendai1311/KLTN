@@ -5,12 +5,20 @@ const createScore = async (req, res) => {
         const result = await scoreService.createScore(req.body);
         res.status(201).json(result);
     } catch (error) {
-        res.status(500).json({
-            status: "ERROR",
-            message: error.message
-        });
+        if (error.message === "Bảng điểm cho bài thi này đã tồn tại!") {
+            res.status(400).json({
+                status: "ERROR",
+                message: error.message
+            });
+        } else {
+            res.status(500).json({
+                status: "ERROR",
+                message: error.message
+            });
+        }
     }
 };
+
 
 const getAllScores = async (req, res) => {
     try {

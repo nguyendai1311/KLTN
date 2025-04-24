@@ -16,7 +16,6 @@ const createClass = async (req, res) => {
             endDate
         } = req.body;
 
-        // Kiểm tra dữ liệu bắt buộc
         if (!name || !course || !teacher || !schedule || !address || !startDate || !endDate) {
             return res.status(400).json({
                 status: 'ERR',
@@ -24,8 +23,7 @@ const createClass = async (req, res) => {
             });
         }
 
-        // Tạo lớp học mới
-        const newClass = await Class.create({
+        const result = await classService.createClass({
             name,
             course,
             teacher,
@@ -36,28 +34,11 @@ const createClass = async (req, res) => {
             endDate
         });
 
-        // Thêm classId vào khóa học tương ứng
-        const updatedCourse = await Course.findByIdAndUpdate(
-            course,
-            { $push: { classes: newClass._id } },
-            { new: true }
-        );
-
-        if (!updatedCourse) {
-            return res.status(404).json({
-                status: 'ERR',
-                message: 'Course not found',
-            });
+        if (result.status === 'ERR') {
+            return res.status(400).json(result);
         }
 
-        return res.status(201).json({
-            status: 'OK',
-            message: 'Class created and added to course successfully',
-            data: {
-                class: newClass,
-                course: updatedCourse
-            }
-        });
+        return res.status(201).json(result);
 
     } catch (error) {
         return res.status(500).json({
@@ -67,6 +48,7 @@ const createClass = async (req, res) => {
         });
     }
 };
+
 
 
 //  Lấy danh sách tất cả lớp học
