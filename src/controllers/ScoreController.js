@@ -61,6 +61,28 @@ const getScoreByExamId = async (req, res) => {
 };
 
 
+const getScoreByExamIdAndStudentId = async (req, res) => {
+    const { examId, studentId } = req.params;
+    try {
+        const score = await scoreService.getScoreByExamIdAndStudentId(examId, studentId);
+
+        if (score !== null) {
+            return res.status(200).json({ score });
+        } else {
+            return res.status(404).json({
+                status: "ERROR",
+                message: 'Không tìm thấy điểm cho học sinh này trong bài thi này'
+            });
+        }
+    } catch (error) {
+        return res.status(500).json({
+            status: "ERROR",
+            message: error.message
+        });
+    }
+};
+
+
 
 const updateScore = async (req, res) => {
     try {
@@ -97,5 +119,6 @@ module.exports = {
     getAllScores,
     getScoreByExamId,
     updateScore,
-    deleteScore
+    deleteScore,
+    getScoreByExamIdAndStudentId
 };

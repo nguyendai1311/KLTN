@@ -55,6 +55,25 @@ const getScoreByExamId = async (examId) => {
     }
 };
 
+const getScoreByExamIdAndStudentId = async (examId, studentId) => {
+    try {
+      const score = await Score.findOne({
+        examId: examId,
+        'scores.studentId': studentId
+      });
+  
+      if (!score) {
+        throw new Error('Không tìm thấy điểm cho bài thi này và học sinh này');
+      }
+  
+      const studentScore = score.scores.find(s => s.studentId.toString() === studentId.toString());
+  
+      return studentScore ? studentScore.score : null;
+    } catch (error) {
+      throw new Error(error.message || 'Có lỗi xảy ra khi lấy điểm');
+    }
+  };
+
 const updateScore = async (id, updateData) => {
     try {
         const updated = await Score.findByIdAndUpdate(id, updateData, { new: true });
@@ -99,5 +118,6 @@ module.exports = {
     getAllScores,
     getScoreByExamId,
     updateScore,
-    deleteScore
+    deleteScore,
+    getScoreByExamIdAndStudentId
 };
