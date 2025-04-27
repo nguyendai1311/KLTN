@@ -162,6 +162,27 @@ const getTotalClasses = async (req, res) => {
     }
 };
 
+const getScheduleByClassId = async (req, res) => {
+    try {
+      const { classId } = req.params;
+  
+      const classroom = await classService.getScheduleByClassId(classId);
+  
+      if (!classroom) {
+        return res.status(404).json({ message: 'Không tìm thấy lớp học' });
+      }
+  
+      return res.status(200).json({
+        schedule: classroom.schedule,
+        startDate: classroom.startDate,
+        endDate: classroom.endDate,
+        address: classroom.address
+      });
+    } catch (error) {
+      console.error('Lỗi ở getScheduleByClassId Controller:', error);
+      return res.status(500).json({ message: 'Lỗi server' });
+    }
+  };
 
 module.exports = {
     createClass,
@@ -173,5 +194,6 @@ module.exports = {
     getTotalClasses,
     getClassesByTeacherId,
     getStudentsInClass,
-    getClassesByStudentId 
+    getClassesByStudentId,
+    getScheduleByClassId 
 };

@@ -13,5 +13,6 @@ router.get("/get-total-classes", ClassController.getTotalClasses);
 router.get("/get-all-by-teacherid/:teacherId", ClassController.getClassesByTeacherId);
 router.get("/get-student-in-classes/:classId", ClassController.getStudentsInClass);
 router.get("/get-class-by-studentId/:studentId", ClassController.getClassesByStudentId);
+router.get("/get-schedule-by-classId/:classId", ClassController.getScheduleByClassId);
 
 module.exports = router;

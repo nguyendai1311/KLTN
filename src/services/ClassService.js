@@ -269,6 +269,13 @@ const getStudentsInClass = async (classId) => {
     }
 };
 
+const getScheduleByClassId = async (classId) => {
+    const classroom = await Class.findById(classId)
+      .select('schedule startDate endDate');
+    return classroom; 
+  };
+  
+
 
 module.exports = {
     createClass,
@@ -280,5 +287,6 @@ module.exports = {
     getTotalClasses,
     getClassesByTeacherId,
     getStudentsInClass,
-    getClassesByStudentId
+    getClassesByStudentId,
+    getScheduleByClassId
 }
