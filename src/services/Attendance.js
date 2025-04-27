@@ -105,9 +105,30 @@ const getAllByIdTeacher = async (teacherId) => {
     }
 };
 
+
+const getAttendanceByClassAndDate = async (classroomId, date) => {
+  try {
+    const startOfDay = new Date(date);
+    startOfDay.setUTCHours(0, 0, 0, 0);
+
+    const endOfDay = new Date(date);
+    endOfDay.setUTCHours(23, 59, 59, 999);
+
+    const attendance = await Attendance.findOne({
+      classroom: classroomId,
+      date: { $gte: startOfDay, $lte: endOfDay }
+    });
+
+    return attendance;
+  } catch (error) {
+    throw new Error(error.message);
+  }
+};
+
 module.exports = {
     bulkAttendance,
     updateAttendance,
     deleteAttendance,
-    getAllByIdTeacher
+    getAllByIdTeacher,
+    getAttendanceByClassAndDate
 };

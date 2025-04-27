@@ -93,9 +93,30 @@ const getAllByIdTeacher = async (req, res) => {
     }
 };
 
+const getAttendanceByClassAndDate = async (req, res) => {
+    try {
+      const { classroomId, date } = req.query;
+  
+      if (!classroomId || !date) {
+        return res.status(400).json({ message: 'Missing classroomId or date' });
+      }
+      const attendance = await attendanceService.getAttendanceByClassAndDate(classroomId, date);
+      if (!attendance) {
+        return res.status(404).json({ message: 'Attendance not found' });
+      }
+  
+      res.status(200).json(attendance);
+    } catch (error) {
+      res.status(500).json({ message: error.message });
+    }
+  };
+  
+  
+
 module.exports = {
     bulkAttendance,
     updateAttendance,
     deleteAttendance,
-    getAllByIdTeacher
+    getAllByIdTeacher,
+    getAttendanceByClassAndDate
 };
