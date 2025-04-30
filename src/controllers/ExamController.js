@@ -95,6 +95,25 @@ const deleteExam = async (req, res) => {
   }
 };
 
+const submitExam = async (req, res) => {
+  try {
+    const { examId, answers,studentId } = req.body;
+    if (!examId || !answers || !studentId) {
+      return res.status(400).json({ message: "Thiếu dữ liệu đầu vào." });
+    }
+
+    const result = await examService.submitExam(examId, answers,studentId);
+
+    return res.status(200).json({
+      message: "Nộp bài thành công.",
+      result,
+    });
+  } catch (err) {
+    return res.status(500).json({ message: err.message || "Lỗi server." });
+  }
+};
+
+
 module.exports = {
   createExam,
   getAllExams,
@@ -102,5 +121,6 @@ module.exports = {
   updateExam,
   deleteExam,
   getExamsByTeacherId,
-  getExamsByClassId
+  getExamsByClassId,
+  submitExam
 }

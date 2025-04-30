@@ -9,6 +9,7 @@ const ExamRouter = require('./ExamRouter')
 const ScoreRouter = require('./ScoreRouter')
 const BlogRouter = require('./BlogRouter')
 const PaymentRouter = require('./PaymentRouter')
+const SuggestCourse = require('./CourseSuggestion')
 
 const routes = (app) => {
     app.use('/api/user', UserRouter)
@@ -22,7 +23,7 @@ const routes = (app) => {
     app.use('/api/score', ScoreRouter)
     app.use('/api/blog', BlogRouter)
     app.use('/api/payment', PaymentRouter)
-
+    app.use('/api/suggest-course', SuggestCourse)
 }
 
 module.exports = routes

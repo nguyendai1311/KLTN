@@ -10,6 +10,7 @@ router.get('/get-exam-by-teacherid/:id', authTeacherMiddleWare, ExamController.g
 router.put('/update-exam/:id', authTeacherMiddleWare, ExamController.updateExam)
 router.delete('/delete/:id', authTeacherMiddleWare, ExamController.deleteExam)
 router.get('/get-exam-by-classid/:id', ExamController.getExamsByClassId)
+router.post('/submit', ExamController.submitExam);
 
 module.exports = router
 

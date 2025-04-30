@@ -1,4 +1,5 @@
 const Exam = require("../models/ExamModel")
+const Score = require("../models/ScoreModel")
 
 const createExam = (examData) => {
     return new Promise(async (resolve, reject) => {
@@ -147,12 +148,52 @@ const deleteExam = (id) => {
     });
 };
 
-module.exports =  {
+
+const submitExam = async (examId, answers, studentId) => {
+    const exam = await Exam.findById(examId);
+    if (!exam) throw new Error("Không tìm thấy đề thi.");
+
+    let correctCount = 0;
+
+    // Duyệt qua từng câu hỏi
+    exam.questions.forEach((question) => {
+        const userAnswer = answers[question.questionId];
+        if (userAnswer && userAnswer === question.correctAnswer) {
+            correctCount++;
+        }
+    });
+
+    const totalQuestions = exam.questions.length;
+    const score = Number(((correctCount / totalQuestions) * 10).toFixed(2));
+
+    let scoreDoc = await Score.findOne({ examId });
+
+    if (scoreDoc) {
+        const alreadySubmitted = scoreDoc.scores.find(s => s.studentId.toString() === studentId.toString());
+        if (alreadySubmitted) {
+            throw new Error("Bạn đã nộp bài trước đó.");
+        }
+        scoreDoc.scores.push({ studentId, score });
+        await scoreDoc.save();
+    } else {
+        scoreDoc = new Score({
+            examId,
+            scores: [{ studentId, score }]
+        });
+        await scoreDoc.save();
+    }
+
+    return { score };
+};
+
+
+module.exports = {
     createExam,
     getAllExams,
     getExamById,
     updateExam,
     deleteExam,
     getExamsByTeacherId,
-    getExamsByClassId
+    getExamsByClassId,
+    submitExam
 };
