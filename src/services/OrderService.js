@@ -7,7 +7,7 @@ const createOrder = async (newOrder) => {
   try {
     const { orderItems, totalPrice, studentName,user, isPaid, paidAt, email } = newOrder;
     const failedOrders = [];
-    
+
     if (!Array.isArray(orderItems) || orderItems.length === 0) {
       return {
         status: 'ERR',
@@ -60,7 +60,7 @@ const createOrder = async (newOrder) => {
       const updatedClass = await Class.findOneAndUpdate(
         { _id: new mongoose.Types.ObjectId(order.classId) },
         {
-          $inc: { maxStudent: -1 },
+          $inc: { studentCount: -1 },
           $addToSet: { students: user }
         },
         { new: true }
@@ -95,8 +95,8 @@ const createOrder = async (newOrder) => {
       totalPrice,
       user,
       studentName,
-      isPaid,
-      paidAt,
+      isPaid: true,
+      paidAt: Boolean(isPaid) ? (paidAt || new Date()) : undefined,
       email,
     });
 
@@ -126,15 +126,14 @@ const createOrder = async (newOrder) => {
   }
 };
 
-
 const getAllOrderDetails = (id) => {
   return new Promise(async (resolve, reject) => {
     try {
       const order = await Order.find({ user: id })
         .sort({ createdAt: -1, updatedAt: -1 })
         .populate({
-          path: "orderItems.class", 
-          select: "schedule",       
+          path: "orderItems.class",
+          select: "schedule",
         });
 
       if (!order) {
@@ -249,12 +248,12 @@ const getAllOrder = () => {
 
 const calculateTotalRevenue = async () => {
   const result = await Order.aggregate([
-      {
-          $group: {
-              _id: null,
-              totalRevenue: { $sum: "$totalPrice" }
-          }
+    {
+      $group: {
+        _id: null,
+        totalRevenue: { $sum: "$totalPrice" }
       }
+    }
   ]);
 
   const totalRevenue = result.length > 0 ? result[0].totalRevenue : 0;

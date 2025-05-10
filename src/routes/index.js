@@ -11,6 +11,7 @@ const BlogRouter = require('./BlogRouter')
 const PaymentRouter = require('./PaymentRouter')
 const SuggestCourse = require('./CourseSuggestion')
 const Notification = require('./NotificationRouter')
+const Statisfic = require('./StatisticRouter')
 
 const routes = (app) => {
     app.use('/api/user', UserRouter)
@@ -26,6 +27,7 @@ const routes = (app) => {
     app.use('/api/payment', PaymentRouter)
     app.use('/api/suggest-course', SuggestCourse)
     app.use('/api/notification', Notification)
+    app.use('/api/statistics', Statisfic)
 }
 
 module.exports = routes
