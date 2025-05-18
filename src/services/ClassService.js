@@ -7,7 +7,7 @@ const isTimeOverlap = (start1, end1, start2, end2) => {
 };
 
 const createClass = async (newClass) => {
-    const { name, course, schedule, address } = newClass;
+    const { name, course, schedule, address, teacher } = newClass;
 
     // Kiểm tra tên lớp trùng ở khóa khác
     const existingClass = await Class.findOne({ name });
@@ -18,20 +18,35 @@ const createClass = async (newClass) => {
         };
     }
 
-    // Lấy tất cả lớp để kiểm tra trùng giờ và phòng
+    // Lấy tất cả lớp để kiểm tra trùng giờ và phòng, và trùng giờ giảng viên
     const allClasses = await Class.find();
 
     for (const cls of allClasses) {
         for (const existingSlot of cls.schedule) {
             for (const newSlot of schedule) {
                 const isSameDay = existingSlot.day === newSlot.day;
-                const isTimeClash = isTimeOverlap(newSlot.startTime, newSlot.endTime, existingSlot.startTime, existingSlot.endTime);
-                const isSameRoom = cls.address === address;
+                const isTimeClash = isTimeOverlap(
+                    newSlot.startTime,
+                    newSlot.endTime,
+                    existingSlot.startTime,
+                    existingSlot.endTime
+                );
 
+                // Kiểm tra trùng phòng
+                const isSameRoom = cls.address === address;
                 if (isSameDay && isTimeClash && isSameRoom) {
                     return {
                         status: 'ERR',
                         message: `Phòng học "${address}" đã có lớp "${cls.name}" vào ${existingSlot.day} (${existingSlot.startTime} - ${existingSlot.endTime})`
+                    };
+                }
+
+                // Kiểm tra trùng giờ giảng viên
+                const isSameTeacher = cls.teacher?.toString() === teacher?.toString();
+                if (isSameDay && isTimeClash && isSameTeacher) {
+                    return {
+                        status: 'ERR',
+                        message: `Giảng viên đã dạy lớp "${cls.name}" vào ${existingSlot.day} (${existingSlot.startTime} - ${existingSlot.endTime})`
                     };
                 }
             }
@@ -60,6 +75,62 @@ const createClass = async (newClass) => {
         };
     }
 };
+
+
+// const createClass = async (newClass) => {
+//     const { name, course, schedule, address } = newClass;
+
+//     // Kiểm tra tên lớp trùng ở khóa khác
+//     const existingClass = await Class.findOne({ name });
+//     if (existingClass && existingClass.course.toString() !== course) {
+//         return {
+//             status: 'ERR',
+//             message: 'Tên lớp đã tồn tại'
+//         };
+//     }
+
+//     // Lấy tất cả lớp để kiểm tra trùng giờ và phòng
+//     const allClasses = await Class.find();
+
+//     for (const cls of allClasses) {
+//         for (const existingSlot of cls.schedule) {
+//             for (const newSlot of schedule) {
+//                 const isSameDay = existingSlot.day === newSlot.day;
+//                 const isTimeClash = isTimeOverlap(newSlot.startTime, newSlot.endTime, existingSlot.startTime, existingSlot.endTime);
+//                 const isSameRoom = cls.address === address;
+
+//                 if (isSameDay && isTimeClash && isSameRoom) {
+//                     return {
+//                         status: 'ERR',
+//                         message: `Phòng học "${address}" đã có lớp "${cls.name}" vào ${existingSlot.day} (${existingSlot.startTime} - ${existingSlot.endTime})`
+//                     };
+//                 }
+//             }
+//         }
+//     }
+
+//     try {
+//         const createdClass = await Class.create(newClass);
+
+//         // Gắn vào khóa học
+//         await Course.findByIdAndUpdate(
+//             course,
+//             { $push: { classes: createdClass._id } },
+//             { new: true }
+//         );
+
+//         return {
+//             status: "OK",
+//             message: "Tạo lớp học thành công",
+//             data: createdClass
+//         };
+//     } catch (e) {
+//         return {
+//             status: 'ERR',
+//             message: e.message || 'Đã xảy ra lỗi khi tạo lớp học'
+//         };
+//     }
+// };
 
 
 
