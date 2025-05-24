@@ -61,11 +61,16 @@ const getCourseStudentDistribution = async (req, res) => {
 const getStudentGrowth = async (req, res) => {
   try {
     const year = parseInt(req.query.year);
-    const classes = await Class.find({
+    if (!year || isNaN(year)) {
+      return res.status(400).json({ message: "Năm không hợp lệ" });
+    }
+
+    const orders = await Order.find({
       createdAt: {
-        $gte: new Date(`${year}-01-01`),
-        $lte: new Date(`${year}-12-31`)
-      }
+        $gte: new Date(`${year}-01-01T00:00:00Z`),
+        $lte: new Date(`${year}-12-31T23:59:59Z`)
+      },
+      isPaid: true 
     });
 
     const monthlyGrowth = Array.from({ length: 12 }, (_, i) => ({
@@ -73,9 +78,14 @@ const getStudentGrowth = async (req, res) => {
       students: 0
     }));
 
-    for (let cls of classes) {
-      const month = new Date(cls.createdAt).getMonth(); // 0-based
-      monthlyGrowth[month].students += cls.students?.length || 0;
+    for (let order of orders) {
+      const month = new Date(order.createdAt).getMonth(); // 0-based index tháng
+      // Tổng số học viên = tổng amount của các orderItems
+      let totalStudents = 0;
+      if (order.orderItems && order.orderItems.length > 0) {
+        totalStudents = order.orderItems.reduce((sum, item) => sum + (item.amount || 0), 0);
+      }
+      monthlyGrowth[month].students += totalStudents;
     }
 
     res.json(monthlyGrowth);
